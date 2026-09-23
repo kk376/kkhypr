@@ -247,8 +247,8 @@ up = [ "Up" ]
 validate = [ "Return", "KP_Enter", "space" ]
 
 [location]
-address = "Jaipur, Rajasthan, India"
-auto_locate = true
+address = "Kaman, Rajasthan, India"
+auto_locate = false
 custom_schedule = false
 sunrise = ""
 sunset = ""
