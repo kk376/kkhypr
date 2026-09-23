@@ -33,7 +33,6 @@ order = [ "default" ]
     contact_shadow = false
     enabled = true
     end = [
-        "media",
         "tray",
         "notifications",
         "clipboard",
