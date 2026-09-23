@@ -33,6 +33,7 @@ order = [ "default" ]
     contact_shadow = false
     enabled = true
     end = [
+        "weather",
         "tray",
         "notifications",
         "clipboard",
@@ -246,8 +247,8 @@ up = [ "Up" ]
 validate = [ "Return", "KP_Enter", "space" ]
 
 [location]
-address = ""
-auto_locate = false
+address = "Jaipur, Rajasthan, India"
+auto_locate = true
 custom_schedule = false
 sunrise = ""
 sunset = ""
@@ -659,3 +660,9 @@ type = "spacer"
 [widget.temp]
 stat = "cpu_temp"
 type = "sysmon"
+
+[widget.weather]
+show_condition = true
+show_temperature = true
+type = "weather"
+
