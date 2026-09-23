@@ -14,8 +14,8 @@ Linux kernel DRM assignment on hybrid laptops frequently maps `/dev/dri/card0` t
 `kkhypr` eliminates these freezes through two deterministic environment rules:
 
 1. **Explicit DRM Card Ordering**:
-   `AQ_DRM_DEVICES=/dev/dri/by-path/pci-0000:05:00.0-card:/dev/dri/by-path/pci-0000:01:00.0-card`
-   Binds the Aquamarine compositor backend directly to the integrated AMD Radeon 680M (`05:00.0`). The NVIDIA card (`01:00.0`) remains auxiliary and stays powered down in D3cold.
+   `AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0`
+   Binds the Aquamarine compositor backend directly to the integrated AMD Radeon 680M (`card1`). The NVIDIA card (`card0`) remains secondary and stays powered down in D3cold. Note that Aquamarine uses colon delimiters, so PCI by-path identifiers containing colons must be avoided.
 
 2. **Vulkan ICD Loader Filtration**:
    `VK_LOADER_DRIVERS_SELECT=*radeon*`
