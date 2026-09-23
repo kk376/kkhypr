@@ -140,8 +140,8 @@ validate_configurations() {
 
 check_hardware_topology() {
     log_info "Auditing GPU hardware routing..."
-    local igpu_path="/dev/dri/by-path/pci-0000:05:00.0-card"
-    local dgpu_path="/dev/dri/by-path/pci-0000:01:00.0-card"
+    local igpu_path="/dev/dri/card1"
+    local dgpu_path="/dev/dri/card0"
 
     if [[ -e "$igpu_path" ]]; then
         log_pass "Primary AMD iGPU DRM node confirmed at $igpu_path"
