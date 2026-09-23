@@ -1,0 +1,15 @@
+# ==============================================================================
+# kkhypr: greetd configuration
+# ==============================================================================
+
+[terminal]
+vt = 1
+
+[default_session]
+# Option A: tuigreet (Production-ready, keyboard-driven Wayland session launcher)
+command = "tuigreet --time --remember --remember-session --sessions /usr/share/wayland-sessions --cmd Hyprland"
+
+# Option B: noctalia-greeter (When noctalia-greeter-session binary is installed)
+# command = "noctalia-greeter-session"
+
+user = "greetd"
