@@ -327,9 +327,20 @@ hl.bind("XF86MonBrightnessDown",  hl.dsp.exec_cmd("brightnessctl set 5%-"),     
 local screenshotScript = os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh"
 hl.bind("Print",                        hl.dsp.exec_cmd(screenshotScript .. " area"))
 hl.bind(mainMod .. " + Print",          hl.dsp.exec_cmd(screenshotScript .. " screen"))
+
+-- Fullscreen save: Super + Left Alt and Super + Right Alt (press variants)
 hl.bind(mainMod .. " + ALT + Print",    hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 hl.bind(mainMod .. " + ALT + Sys_Req",  hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 hl.bind(mainMod .. " + Sys_Req",        hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + MOD1 + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + MOD1 + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 hl.bind(mainMod .. " + MOD5 + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 hl.bind(mainMod .. " + MOD5 + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+
+-- Release-event triggers (catches kernel SysRq re-injection for Left Alt + PrintScreen)
+hl.bind(mainMod .. " + ALT + Print",    hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
+hl.bind(mainMod .. " + ALT + Sys_Req",  hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
+hl.bind(mainMod .. " + Sys_Req",        hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
+hl.bind(mainMod .. " + MOD1 + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
+hl.bind(mainMod .. " + MOD1 + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
 

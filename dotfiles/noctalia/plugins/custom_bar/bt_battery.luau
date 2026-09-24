@@ -20,7 +20,10 @@ local function refresh()
         return
       end
     end
-    barWidget.setVisible(false)
+    barWidget.setVisible(true)
+    barWidget.setGlyph("bluetooth")
+    barWidget.setText("")
+    barWidget.setTooltip("Bluetooth (Disconnected)")
   end)
 end
 
@@ -43,4 +46,8 @@ function onIpc(event, payload)
   end
 end
 
+barWidget.setVisible(true)
+barWidget.setGlyph("bluetooth")
+barWidget.setText("")
+barWidget.setTooltip("Bluetooth")
 refresh()
