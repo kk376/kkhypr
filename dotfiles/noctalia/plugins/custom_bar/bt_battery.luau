@@ -6,12 +6,17 @@ local function refresh()
       local percent = tonumber(result.stdout:match('"percent":%s*(%d+)'))
       local name = result.stdout:match('"name":%s*"([^"]+)"')
 
-      if connected and percent then
+      if connected then
         barWidget.setVisible(true)
         barWidget.setGlyph("bluetooth")
-        barWidget.setText(tostring(percent) .. "%")
         local deviceName = (name and name ~= "") and name or "Bluetooth Device"
-        barWidget.setTooltip(deviceName .. " " .. tostring(percent) .. "%")
+        if percent then
+          barWidget.setText(tostring(percent) .. "%")
+          barWidget.setTooltip(deviceName .. " " .. tostring(percent) .. "%")
+        else
+          barWidget.setText("BT")
+          barWidget.setTooltip(deviceName .. " (Connecting...)")
+        end
         return
       end
     end
@@ -20,7 +25,7 @@ local function refresh()
 end
 
 function update()
-  noctalia.setUpdateInterval(2000)
+  noctalia.setUpdateInterval(1000)
   refresh()
 end
 
