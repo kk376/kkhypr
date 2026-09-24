@@ -119,8 +119,10 @@ The primary modifier key is `SUPER` (Windows key).
 | Keybinding | Action | Command |
 | :--- | :--- | :--- |
 | `SUPER + Enter` | Launch Terminal | `ghostty` |
-| `SUPER + Space` | Toggle App Launcher | `noctalia msg launcher:toggle` |
+| `SUPER + Space` | Toggle App Launcher | `noctalia msg panel-toggle launcher` |
 | `SUPER + E` | File Manager | `nautilus` |
+| `SUPER + C` | Code / Text Editor | `zed` |
+| `SUPER + Alt + C` | Clipboard History | `noctalia msg panel-toggle clipboard` |
 | `SUPER + B` | Web Browser | `google-chrome` |
 | `SUPER + L` | Lock Screen | `loginctl lock-session` |
 
