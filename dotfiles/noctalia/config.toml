@@ -28,7 +28,7 @@ order = [ "default" ]
     capsule_opacity = 1.0
     capsule_padding = 6.0
     capsule_thickness = 0.75999999046325684
-    center = [ "clock" ]
+    center = [ "clock", "spacer_05cm", "notifications" ]
     concave_edge_corners = false
     contact_shadow = false
     enabled = true
@@ -36,11 +36,10 @@ order = [ "default" ]
         "network_rx",
         "network_tx",
         "tray",
-        "notifications",
         "clipboard",
-        "bluetooth",
+        "local/custom_bar:bt_battery",
         "network",
-        "battery",
+        "local/custom_bar:laptop_battery",
         "session"
     ]
     font_scale = 1.0
@@ -63,7 +62,7 @@ order = [ "default" ]
     shadow = true
     show_on_workspace_switch = true
     smart_auto_hide = false
-    start = [ "workspaces", "spacer_1cm", "weather" ]
+    start = [ "workspaces", "spacer_1cm", "active_window", "spacer_1cm", "weather" ]
     thickness = 34
     widget_spacing = 6
 
@@ -597,7 +596,8 @@ refresh_minutes = 30
 unit = "metric"
 
 [widget.active_window]
-icon_size = 14.0
+display = "icon_only"
+icon_size = 16.0
 max_length = 260.0
 min_length = 80.0
 title_scroll = "none"
@@ -657,6 +657,10 @@ type = "spacer"
 
 [widget.spacer_1cm]
 length = 45.0
+type = "spacer"
+
+[widget.spacer_05cm]
+length = 23
 type = "spacer"
 
 [widget.clock]

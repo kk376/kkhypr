@@ -1,0 +1,12 @@
+[[plugin]]
+id = "local/custom_bar"
+name = "Custom Bar"
+version = "1.0.0"
+updated_at = 1790000000
+added_at = 1790000000
+author = "local"
+license = "MIT"
+icon = "puzzle"
+description = "Custom bar widgets for bluetooth battery and battery cell."
+plugin_api = 18
+tags = ["bar"]

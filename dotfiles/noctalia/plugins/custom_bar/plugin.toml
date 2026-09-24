@@ -1,0 +1,16 @@
+id = "local/custom_bar"
+name = "Custom Bar"
+version = "1.0.0"
+plugin_api = 18
+author = "local"
+license = "MIT"
+icon = "puzzle"
+description = "Custom bar widgets for bluetooth battery and battery cell."
+
+[[widget]]
+id = "bt_battery"
+entry = "bt_battery.luau"
+
+[[widget]]
+id = "laptop_battery"
+entry = "laptop_battery.luau"

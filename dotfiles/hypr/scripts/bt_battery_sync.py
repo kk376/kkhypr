@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-Bluetooth Device Battery to Alias Synchronizer
-Monitors connected Bluetooth audio/peripheral devices and updates their BlueZ Alias
-to match their current battery percentage (e.g. '100%', '80%').
-This allows desktop bars (like Noctalia) to render:
-[BT Logo] [BT Battery Percentage]
-without modifying or conflating the system/laptop battery.
+Bluetooth Device Battery Synchronizer
+Monitors connected Bluetooth audio/peripheral devices and exports current battery status
+to /run/user/<uid>/bt_battery.json for top bar widgets (e.g. Noctalia Custom Bar).
+Ensures the BlueZ device Alias reflects the authentic hardware name rather than battery percentage.
 """
 
+import json
 import os
 import re
 import signal
@@ -30,57 +29,98 @@ def get_connected_devices():
     except Exception:
         return []
 
-def get_device_battery(mac):
+def get_device_info(mac):
+    name = "Bluetooth Device"
+    battery = None
     try:
         out = subprocess.check_output(
             ["bluetoothctl", "info", mac],
             stderr=subprocess.DEVNULL
         ).decode("utf-8", errors="ignore")
         for line in out.splitlines():
-            if "Battery Percentage:" in line:
-                m = re.search(r"\((\d+)\)", line)
+            line_str = line.strip()
+            if line_str.startswith("Name:"):
+                name = line_str[5:].strip()
+            elif "Battery Percentage:" in line_str:
+                m = re.search(r"\((\d+)\)", line_str)
                 if m:
-                    return m.group(1)
-                parts = line.split(":")[-1].strip().split()
-                if parts:
-                    return parts[0]
+                    battery = int(m.group(1))
+                else:
+                    parts = line_str.split(":")[-1].strip().split()
+                    if parts and parts[0].isdigit():
+                        battery = int(parts[0])
     except Exception:
         pass
 
-    # Fallback to UPower
-    dev_str = "headset_dev_" + mac.replace(":", "_")
-    try:
-        out = subprocess.check_output(
-            ["upower", "-i", f"/org/freedesktop/UPower/devices/{dev_str}"],
-            stderr=subprocess.DEVNULL
-        ).decode("utf-8", errors="ignore")
-        for line in out.splitlines():
-            if "percentage:" in line:
-                return line.split(":")[-1].replace("%", "").strip()
-    except Exception:
-        pass
+    if battery is None:
+        # Fallback to UPower
+        dev_str = "headset_dev_" + mac.replace(":", "_")
+        try:
+            out = subprocess.check_output(
+                ["upower", "-i", f"/org/freedesktop/UPower/devices/{dev_str}"],
+                stderr=subprocess.DEVNULL
+            ).decode("utf-8", errors="ignore")
+            for line in out.splitlines():
+                if "model:" in line and name == "Bluetooth Device":
+                    name = line.split(":")[-1].strip()
+                elif "percentage:" in line:
+                    val_str = line.split(":")[-1].replace("%", "").strip()
+                    try:
+                        battery = int(float(val_str))
+                    except ValueError:
+                        pass
+        except Exception:
+            pass
 
-    return None
+    return name, battery
 
-def set_device_alias(mac, alias):
+def restore_device_alias(mac, name):
     dev_path = f"/org/bluez/hci0/dev_{mac.replace(':', '_')}"
     cmd = [
         "busctl", "--system", "call", "org.bluez", dev_path,
         "org.freedesktop.DBus.Properties", "Set", "ssv",
-        "org.bluez.Device1", "Alias", "s", alias
+        "org.bluez.Device1", "Alias", "s", name
     ]
     try:
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
     except Exception:
         pass
 
+def write_status(connected, name, percent, mac):
+    data = {
+        "connected": connected,
+        "name": name,
+        "percent": percent,
+        "mac": mac,
+    }
+    uid = os.getuid()
+    target = f"/run/user/{uid}/bt_battery.json"
+    temp_target = target + ".tmp"
+    try:
+        with open(temp_target, "w") as f:
+            json.dump(data, f)
+        os.replace(temp_target, target)
+    except Exception:
+        pass
+
 def sync_all():
     connected = get_connected_devices()
+    if not connected:
+        write_status(False, "", None, None)
+        return
+
+    # Primary connected device
     for mac in connected:
-        pct = get_device_battery(mac)
+        name, pct = get_device_info(mac)
+        if name and name != "90%":
+            restore_device_alias(mac, name)
         if pct is not None:
-            target_alias = f"{pct}%"
-            set_device_alias(mac, target_alias)
+            write_status(True, name, pct, mac)
+            return
+
+    # If connected but no battery reported yet
+    name, _ = get_device_info(connected[0])
+    write_status(True, name, None, connected[0])
 
 def main():
     running = True
@@ -115,7 +155,7 @@ def main():
         last_sync = time.time()
         while running and proc.poll() is None:
             now = time.time()
-            if now - last_sync >= 20.0:
+            if now - last_sync >= 10.0:
                 sync_all()
                 last_sync = now
 
