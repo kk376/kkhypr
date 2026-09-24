@@ -271,15 +271,15 @@ hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + F",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd(editor))
 hl.bind(mainMod .. " + c",       hl.dsp.exec_cmd(editor))
-hl.bind(mainMod .. " + ALT + C", hl.dsp.exec_cmd(clipboard))
-hl.bind(mainMod .. " + ALT + c", hl.dsp.exec_cmd(clipboard))
-hl.bind(mainMod .. " + B",       hl.dsp.exec_cmd(browser))
-hl.bind(mainMod .. " + L",       hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind(mainMod .. " + CTRL + C", hl.dsp.exec_cmd(clipboard))
+hl.bind(mainMod .. " + CTRL + c", hl.dsp.exec_cmd(clipboard))
+hl.bind(mainMod .. " + B",        hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + L",        hl.dsp.exec_cmd("loginctl lock-session"))
 
 -- Window management
-hl.bind(mainMod .. " + Q",         hl.dsp.window.close())
-hl.bind(mainMod .. " + V",         hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + ALT + F",   hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
+hl.bind(mainMod .. " + Q",          hl.dsp.window.close())
+hl.bind(mainMod .. " + V",          hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + CTRL + F",   hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
 hl.bind("F11",                     hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
 hl.bind(mainMod .. " + P",         hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J",         hl.dsp.layout("togglesplit"))
@@ -296,20 +296,20 @@ hl.bind(mainMod .. " + k",     hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + j",     hl.dsp.focus({ direction = "down" }))
 
 -- Window movement (Arrow & Vim keys)
-hl.bind(mainMod .. " + ALT + left",  hl.dsp.window.move({ direction = "left" }))
-hl.bind(mainMod .. " + ALT + right", hl.dsp.window.move({ direction = "right" }))
-hl.bind(mainMod .. " + ALT + up",    hl.dsp.window.move({ direction = "up" }))
-hl.bind(mainMod .. " + ALT + down",  hl.dsp.window.move({ direction = "down" }))
-hl.bind(mainMod .. " + ALT + h",     hl.dsp.window.move({ direction = "left" }))
-hl.bind(mainMod .. " + ALT + l",     hl.dsp.window.move({ direction = "right" }))
-hl.bind(mainMod .. " + ALT + k",     hl.dsp.window.move({ direction = "up" }))
-hl.bind(mainMod .. " + ALT + j",     hl.dsp.window.move({ direction = "down" }))
+hl.bind(mainMod .. " + CTRL + left",  hl.dsp.window.move({ direction = "left" }))
+hl.bind(mainMod .. " + CTRL + right", hl.dsp.window.move({ direction = "right" }))
+hl.bind(mainMod .. " + CTRL + up",    hl.dsp.window.move({ direction = "up" }))
+hl.bind(mainMod .. " + CTRL + down",  hl.dsp.window.move({ direction = "down" }))
+hl.bind(mainMod .. " + CTRL + h",     hl.dsp.window.move({ direction = "left" }))
+hl.bind(mainMod .. " + CTRL + l",     hl.dsp.window.move({ direction = "right" }))
+hl.bind(mainMod .. " + CTRL + k",     hl.dsp.window.move({ direction = "up" }))
+hl.bind(mainMod .. " + CTRL + j",     hl.dsp.window.move({ direction = "down" }))
 
 -- Workspaces 1 to 10
 for i = 1, 10 do
     local key = i % 10
-    hl.bind(mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i }))
-    hl.bind(mainMod .. " + ALT + " .. key,       hl.dsp.window.move({ workspace = i }))
+    hl.bind(mainMod .. " + " .. key,              hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + CTRL + " .. key,       hl.dsp.window.move({ workspace = i }))
 end
 
 -- Mouse bindings
@@ -328,19 +328,7 @@ local screenshotScript = os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.
 hl.bind("Print",                        hl.dsp.exec_cmd(screenshotScript .. " area"))
 hl.bind(mainMod .. " + Print",          hl.dsp.exec_cmd(screenshotScript .. " screen"))
 
--- Fullscreen save: Super + Left Alt and Super + Right Alt (press variants)
-hl.bind(mainMod .. " + ALT + Print",    hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + ALT + Sys_Req",  hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + Sys_Req",        hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + MOD1 + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + MOD1 + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + MOD5 + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + MOD5 + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-
--- Release-event triggers (catches kernel SysRq re-injection for Left Alt + PrintScreen)
-hl.bind(mainMod .. " + ALT + Print",    hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
-hl.bind(mainMod .. " + ALT + Sys_Req",  hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
-hl.bind(mainMod .. " + Sys_Req",        hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
-hl.bind(mainMod .. " + MOD1 + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
-hl.bind(mainMod .. " + MOD1 + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"), { release = true })
+-- Fullscreen save: Super + Ctrl + Print
+hl.bind(mainMod .. " + CTRL + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + CTRL + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 
