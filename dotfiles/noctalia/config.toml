@@ -33,14 +33,15 @@ order = [ "default" ]
     contact_shadow = false
     enabled = true
     end = [
-        "weather",
+        "network_rx",
+        "network_tx",
         "tray",
         "notifications",
         "clipboard",
-        "network",
-        "bluetooth",
         "volume",
         "brightness",
+        "network",
+        "bluetooth",
         "battery",
         "control-center",
         "session"
@@ -65,7 +66,7 @@ order = [ "default" ]
     shadow = true
     show_on_workspace_switch = true
     smart_auto_hide = false
-    start = [ "launcher", "wallpaper", "workspaces" ]
+    start = [ "workspaces", "spacer_1cm", "weather" ]
     thickness = 34
     widget_spacing = 6
 
@@ -656,6 +657,19 @@ type = "sysmon"
 [widget.spacer]
 interactive = false
 type = "spacer"
+
+[widget.spacer_1cm]
+length = 45.0
+type = "spacer"
+
+[widget.clock]
+format = "{:%a %b %d  %H:%M:%S}"
+type = "clock"
+
+[widget.volume]
+device = "output"
+show_label = true
+type = "volume"
 
 [widget.temp]
 stat = "cpu_temp"
