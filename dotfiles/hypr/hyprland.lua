@@ -314,9 +314,8 @@ hl.bind("XF86MonBrightnessDown",  hl.dsp.exec_cmd("brightnessctl set 5%-"),     
 -- Screenshots
 local screenshotScript = os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh"
 hl.bind("Print",                       hl.dsp.exec_cmd(screenshotScript .. " area"))
-hl.bind("code:107",                    hl.dsp.exec_cmd(screenshotScript .. " area"))
 hl.bind(mainMod .. " + Print",         hl.dsp.exec_cmd(screenshotScript .. " screen"))
-hl.bind(mainMod .. " + code:107",      hl.dsp.exec_cmd(screenshotScript .. " screen"))
 hl.bind(mainMod .. " + ALT + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 hl.bind(mainMod .. " + ALT + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + ALT + code:107",hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + Sys_Req",       hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+
