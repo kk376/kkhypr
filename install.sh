@@ -113,8 +113,19 @@ check_dependencies() {
 
 validate_configurations() {
     log_info "Validating configuration files..."
+    local hypr_lua="$SCRIPT_DIR/dotfiles/hypr/hyprland.lua"
     local hypr_conf="$SCRIPT_DIR/dotfiles/hypr/hyprland.conf"
     local noctalia_conf="$SCRIPT_DIR/dotfiles/noctalia/config.toml"
+
+    if [[ -f "$hypr_lua" ]]; then
+        if hyprland --verify-config -c "$hypr_lua" >/dev/null 2>&1; then
+            log_pass "Hyprland Lua config validation passed: $hypr_lua"
+        else
+            log_err "Hyprland Lua config validation failed: $hypr_lua"
+            hyprland --verify-config -c "$hypr_lua"
+            return 1
+        fi
+    fi
 
     if [[ -f "$hypr_conf" ]]; then
         if hyprland --verify-config -c "$hypr_conf" >/dev/null 2>&1; then
@@ -195,6 +206,7 @@ deploy_configurations() {
     log_info "Deploying configuration symlinks..."
 
     # Hyprland ecosystem
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprland.lua" "$CONFIG_DIR/hypr/hyprland.lua"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprland.conf" "$CONFIG_DIR/hypr/hyprland.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" "$CONFIG_DIR/hypr/hypridle.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprlock.conf" "$CONFIG_DIR/hypr/hyprlock.conf"
