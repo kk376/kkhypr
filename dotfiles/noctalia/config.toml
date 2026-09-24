@@ -19,7 +19,7 @@ order = [ "default" ]
 
     [bar.default]
     auto_hide = false
-    background_opacity = 1.0
+    background_opacity = 0.8
     border = "outline"
     border_width = 0.0
     capsule = false
@@ -41,7 +41,7 @@ order = [ "default" ]
         "clipboard",
         "spacer_05cm",
         "local/custom_bar:bt_battery",
-        "spacer_025cm",
+        "spacer_05cm",
         "network",
         "spacer_025cm",
         "volume",
@@ -49,7 +49,7 @@ order = [ "default" ]
         "brightness",
         "spacer_025cm",
         "local/custom_bar:laptop_battery",
-        "spacer_1cm",
+        "spacer_075cm",
         "session"
     ]
     font_scale = 1.0
@@ -664,6 +664,10 @@ type = "spacer"
 
 [widget.spacer_05cm]
 length = 23
+type = "spacer"
+
+[widget.spacer_075cm]
+length = 34
 type = "spacer"
 
 [widget.spacer_025cm]

@@ -27,20 +27,20 @@ local function updateBattery()
     isCharging = true
   end
 
-  local glyph = "battery-4"
+  local glyph = "battery-vertical-4"
   if isCharging then
-    glyph = "battery-charging"
+    glyph = "battery-vertical-charging"
   else
     if cap >= 85 then
-      glyph = "battery-4"
+      glyph = "battery-vertical-4"
     elseif cap >= 60 then
-      glyph = "battery-3"
+      glyph = "battery-vertical-3"
     elseif cap >= 35 then
-      glyph = "battery-2"
+      glyph = "battery-vertical-2"
     elseif cap >= 15 then
-      glyph = "battery-1"
+      glyph = "battery-vertical-1"
     else
-      glyph = "battery-0"
+      glyph = "battery-vertical"
     end
   end
 
