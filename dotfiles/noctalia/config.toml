@@ -47,6 +47,9 @@ order = [ "default" ]
         "volume",
         "spacer_025cm",
         "brightness",
+        "spacer_025cm",
+        "local/custom_bar:laptop_battery",
+        "spacer_1cm",
         "session"
     ]
     font_scale = 1.0
@@ -69,7 +72,7 @@ order = [ "default" ]
     shadow = true
     show_on_workspace_switch = true
     smart_auto_hide = false
-    start = [ "workspaces", "spacer_1cm", "active_window", "spacer_05cm", "weather" ]
+    start = [ "workspaces", "spacer_1cm", "tray", "spacer_05cm", "weather" ]
     thickness = 34
     widget_spacing = 6
 
@@ -602,16 +605,6 @@ enabled = true
 refresh_minutes = 30
 unit = "metric"
 
-[widget.active_window]
-display = "icon_only"
-icon_size = 16.0
-max_length = 40.0
-min_length = 24.0
-title_scroll = "none"
-type = "active_window"
-
-    [widget.active_window.actions]
-    right = "plugin local/custom_bar:bt_battery focused quit"
 
 [widget.cpu]
 stat = "cpu_usage"
