@@ -1,180 +1,217 @@
 #!/usr/bin/env python3
 """
-Bluetooth Device Battery Synchronizer
-Monitors connected Bluetooth audio/peripheral devices and exports current battery status
-to /run/user/<uid>/bt_battery.json for top bar widgets (e.g. Noctalia Custom Bar).
-Ensures the BlueZ device Alias reflects the authentic hardware name rather than battery percentage.
+Bluetooth Device Battery Synchronizer Daemon
+Monitors connected Bluetooth audio and peripheral devices via native D-Bus signal subscriptions.
+Exports current connection and battery status to /run/user/<uid>/bt_battery.json for top bar widgets.
+Supports instant notification on device connection, InterfacesAdded, and PropertiesChanged events.
 """
 
 import json
+import logging
 import os
-import re
 import signal
-import subprocess
 import sys
 import time
 
-def get_connected_devices():
-    try:
-        out = subprocess.check_output(
-            ["bluetoothctl", "devices", "Connected"],
-            stderr=subprocess.DEVNULL
-        ).decode("utf-8", errors="ignore")
-        devices = []
-        for line in out.splitlines():
-            parts = line.strip().split()
-            if len(parts) >= 2 and parts[0] == "Device":
-                devices.append(parts[1])
-        return devices
-    except Exception:
-        return []
+import gi
+from gi.repository import Gio, GLib
 
-def get_device_info(mac):
-    name = "Bluetooth Device"
-    battery = None
-    try:
-        out = subprocess.check_output(
-            ["bluetoothctl", "info", mac],
-            stderr=subprocess.DEVNULL
-        ).decode("utf-8", errors="ignore")
-        for line in out.splitlines():
-            line_str = line.strip()
-            if line_str.startswith("Name:"):
-                name = line_str[5:].strip()
-            elif "Battery Percentage:" in line_str:
-                m = re.search(r"\((\d+)\)", line_str)
-                if m:
-                    battery = int(m.group(1))
-                else:
-                    parts = line_str.split(":")[-1].strip().split()
-                    if parts and parts[0].isdigit():
-                        battery = int(parts[0])
-    except Exception:
-        pass
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
-    if battery is None:
-        # Fallback to UPower
+class BluetoothBatterySync:
+    def __init__(self):
+        self.bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
+        self.uid = os.getuid()
+        self.target_file = f"/run/user/{self.uid}/bt_battery.json"
+        self.last_written = None
+        self.retry_timer_id = None
+        self.retry_count = 0
+
+    def query_connected_device(self):
+        try:
+            proxy = Gio.DBusProxy.new_sync(
+                self.bus,
+                Gio.DBusProxyFlags.NONE,
+                None,
+                "org.bluez",
+                "/",
+                "org.freedesktop.DBus.ObjectManager",
+                None,
+            )
+            objects = proxy.GetManagedObjects()
+        except Exception as e:
+            logging.error("Failed to query BlueZ managed objects: %s", e)
+            return False, "", None, None
+
+        for path, ifaces in objects.items():
+            if "org.bluez.Device1" in ifaces:
+                dev = ifaces["org.bluez.Device1"]
+                if dev.get("Connected", False):
+                    name = dev.get("Name", dev.get("Alias", "Bluetooth Device"))
+                    mac = dev.get("Address", "")
+                    pct = None
+
+                    # Check BlueZ Battery1 interface
+                    if "org.bluez.Battery1" in ifaces:
+                        val = ifaces["org.bluez.Battery1"].get("Percentage")
+                        if val is not None:
+                            try:
+                                pct = int(val)
+                            except (ValueError, TypeError):
+                                pass
+
+                    # Fallback to UPower device if BlueZ hasn't exposed battery yet
+                    if pct is None and mac:
+                        pct = self.query_upower_battery(mac)
+
+                    return True, name, pct, mac
+
+        return False, "", None, None
+
+    def query_upower_battery(self, mac: str):
         dev_str = "headset_dev_" + mac.replace(":", "_")
         try:
-            out = subprocess.check_output(
-                ["upower", "-i", f"/org/freedesktop/UPower/devices/{dev_str}"],
-                stderr=subprocess.DEVNULL
-            ).decode("utf-8", errors="ignore")
-            for line in out.splitlines():
-                if "model:" in line and name == "Bluetooth Device":
-                    name = line.split(":")[-1].strip()
-                elif "percentage:" in line:
-                    val_str = line.split(":")[-1].replace("%", "").strip()
-                    try:
-                        battery = int(float(val_str))
-                    except ValueError:
-                        pass
+            upower_dev = Gio.DBusProxy.new_sync(
+                self.bus,
+                Gio.DBusProxyFlags.NONE,
+                None,
+                "org.freedesktop.UPower",
+                f"/org/freedesktop/UPower/devices/{dev_str}",
+                "org.freedesktop.UPower.Device",
+                None,
+            )
+            val = upower_dev.get_cached_property("Percentage")
+            if val is not None:
+                return int(round(float(val.unpack())))
         except Exception:
             pass
+        return None
 
-    return name, battery
-
-def restore_device_alias(mac, name):
-    dev_path = f"/org/bluez/hci0/dev_{mac.replace(':', '_')}"
-    cmd = [
-        "busctl", "--system", "call", "org.bluez", dev_path,
-        "org.freedesktop.DBus.Properties", "Set", "ssv",
-        "org.bluez.Device1", "Alias", "s", name
-    ]
-    try:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
-    except Exception:
-        pass
-
-def write_status(connected, name, percent, mac):
-    data = {
-        "connected": connected,
-        "name": name,
-        "percent": percent,
-        "mac": mac,
-    }
-    uid = os.getuid()
-    target = f"/run/user/{uid}/bt_battery.json"
-    temp_target = target + ".tmp"
-    try:
-        with open(temp_target, "w") as f:
-            json.dump(data, f)
-        os.replace(temp_target, target)
-    except Exception:
-        pass
-
-def sync_all():
-    connected = get_connected_devices()
-    if not connected:
-        write_status(False, "", None, None)
-        return
-
-    # Primary connected device
-    for mac in connected:
-        name, pct = get_device_info(mac)
-        if name and name != "90%":
-            restore_device_alias(mac, name)
-        if pct is not None:
-            write_status(True, name, pct, mac)
+    def write_status(self, connected: bool, name: str, percent: int | None, mac: str | None):
+        state = {
+            "connected": connected,
+            "name": name,
+            "percent": percent,
+            "mac": mac,
+        }
+        if state == self.last_written:
             return
 
-    # If connected but no battery reported yet
-    name, _ = get_device_info(connected[0])
-    write_status(True, name, None, connected[0])
-
-def main():
-    running = True
-
-    def handle_signal(sig, frame):
-        nonlocal running
-        running = False
-
-    signal.signal(signal.SIGINT, handle_signal)
-    signal.signal(signal.SIGTERM, handle_signal)
-
-    sync_all()
-
-    dbus_cmd = [
-        "dbus-monitor", "--system",
-        "type='signal',sender='org.bluez',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
-    ]
-
-    while running:
+        temp_file = self.target_file + ".tmp"
         try:
-            proc = subprocess.Popen(
-                dbus_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                text=True
+            with open(temp_file, "w") as f:
+                json.dump(state, f)
+            os.replace(temp_file, self.target_file)
+            self.last_written = state
+            logging.info(
+                "Updated status: connected=%s, name=%s, percent=%s",
+                connected,
+                name,
+                f"{percent}%" if percent is not None else "None",
             )
-        except Exception:
-            time.sleep(5.0)
-            sync_all()
-            continue
+        except Exception as e:
+            logging.error("Failed to write %s: %s", self.target_file, e)
 
-        last_sync = time.time()
-        while running and proc.poll() is None:
-            now = time.time()
-            if now - last_sync >= 10.0:
-                sync_all()
-                last_sync = now
+    def sync(self):
+        connected, name, pct, mac = self.query_connected_device()
+        self.write_status(connected, name, pct, mac)
 
-            line = proc.stdout.readline()
-            if not line:
-                break
-            if "Battery" in line or "Percentage" in line or "Connected" in line:
-                sync_all()
-                last_sync = time.time()
+        if connected and pct is None:
+            # Device is connected but battery reporting is still handshaking.
+            # Schedule fast retry queries.
+            self.schedule_retry()
+        else:
+            self.cancel_retry()
 
-        if proc.poll() is None:
-            proc.terminate()
-            try:
-                proc.wait(timeout=1.0)
-            except Exception:
-                proc.kill()
+    def schedule_retry(self):
+        if self.retry_timer_id is not None:
+            return
+        self.retry_count = 0
+        self.retry_timer_id = GLib.timeout_add(1000, self._on_retry_tick)
 
-        if running:
-            time.sleep(1.0)
+    def cancel_retry(self):
+        if self.retry_timer_id is not None:
+            GLib.source_remove(self.retry_timer_id)
+            self.retry_timer_id = None
+        self.retry_count = 0
+
+    def _on_retry_tick(self):
+        self.retry_count += 1
+        connected, name, pct, mac = self.query_connected_device()
+        self.write_status(connected, name, pct, mac)
+
+        if pct is not None or not connected or self.retry_count >= 10:
+            self.retry_timer_id = None
+            return GLib.SOURCE_REMOVE
+
+        return GLib.SOURCE_CONTINUE
+
+    def on_bluez_signal(self, conn, sender, path, iface, signal_name, params, user_data):
+        # Trigger immediate sync on any relevant BlueZ state transition
+        if signal_name in {"PropertiesChanged", "InterfacesAdded", "InterfacesRemoved"}:
+            self.sync()
+
+    def on_upower_signal(self, conn, sender, path, iface, signal_name, params, user_data):
+        self.sync()
+
+    def run(self):
+        logging.info("Starting Bluetooth Battery Synchronizer Daemon (native D-Bus)")
+
+        # Initial synchronization
+        self.sync()
+
+        # Subscribe to BlueZ signals across all objects
+        self.bus.signal_subscribe(
+            "org.bluez",
+            None,
+            None,
+            None,
+            None,
+            Gio.DBusSignalFlags.NONE,
+            self.on_bluez_signal,
+            None,
+        )
+
+        # Subscribe to UPower signals
+        self.bus.signal_subscribe(
+            "org.freedesktop.UPower",
+            "org.freedesktop.DBus.Properties",
+            "PropertiesChanged",
+            None,
+            None,
+            Gio.DBusSignalFlags.NONE,
+            self.on_upower_signal,
+            None,
+        )
+        self.bus.signal_subscribe(
+            "org.freedesktop.UPower",
+            "org.freedesktop.UPower",
+            "DeviceAdded",
+            None,
+            None,
+            Gio.DBusSignalFlags.NONE,
+            self.on_upower_signal,
+            None,
+        )
+
+        # Periodic fallback sanity sync every 30 seconds
+        GLib.timeout_add_seconds(30, lambda: (self.sync(), GLib.SOURCE_CONTINUE)[1])
+
+        loop = GLib.MainLoop()
+
+        def on_terminate(sig, frame):
+            logging.info("Terminating cleanly on signal %s", sig)
+            loop.quit()
+
+        signal.signal(signal.SIGINT, on_terminate)
+        signal.signal(signal.SIGTERM, on_terminate)
+
+        loop.run()
 
 if __name__ == "__main__":
-    main()
+    app = BluetoothBatterySync()
+    app.run()
