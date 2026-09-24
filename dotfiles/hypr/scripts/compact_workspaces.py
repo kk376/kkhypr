@@ -4,10 +4,12 @@ Hyprland Dynamic Workspace Compactor Daemon
 Monitors Hyprland socket2 for window close, workspace destruction, and window move events.
 Automatically compacts active workspaces to remove numeric gaps (1, 2, 3...)
 and shifts subsequent workspaces down when an intermediate workspace is emptied.
+Supports both native Hyprland Lua dispatcher bindings (Hyprland 0.56+) and legacy batch syntax.
 """
 
 import fcntl
 import json
+import logging
 import os
 import select
 import signal
@@ -15,6 +17,31 @@ import socket
 import subprocess
 import sys
 import time
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
+_lua_mode_cache = None
+
+def is_lua_mode() -> bool:
+    global _lua_mode_cache
+    if _lua_mode_cache is not None:
+        return _lua_mode_cache
+    try:
+        res = subprocess.run(
+            ["hyprctl", "eval", "return true"],
+            capture_output=True,
+            text=True,
+            timeout=1.0,
+            check=False,
+        )
+        _lua_mode_cache = (res.returncode == 0 and "ok" in res.stdout.lower())
+    except Exception:
+        _lua_mode_cache = False
+    return _lua_mode_cache
 
 def acquire_lock():
     xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
@@ -42,6 +69,59 @@ def run_hyprctl_json(cmd: str):
         return json.loads(raw)
     except Exception:
         return None
+
+def execute_compaction(moves: list, target_active: int | None, active_id: int | None) -> bool:
+    if not moves and (target_active is None or target_active == active_id):
+        return False
+
+    if is_lua_mode():
+        stmts = []
+        for target_id, addr in moves:
+            stmts.append(
+                f'hl.dispatch(hl.dsp.window.move({{ workspace = {target_id}, window = "address:{addr}", follow = false }}))'
+            )
+        if target_active is not None and target_active != active_id:
+            stmts.append(f'hl.dispatch(hl.dsp.focus({{ workspace = {target_active} }}))')
+
+        lua_code = "; ".join(stmts)
+        try:
+            res = subprocess.run(
+                ["hyprctl", "eval", lua_code],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if res.returncode != 0:
+                logging.error("hyprctl eval failed (code %d): %s", res.returncode, res.stderr or res.stdout)
+                return False
+            logging.info("Compacted workspaces via Lua dispatch: %d move(s)", len(moves))
+            return True
+        except Exception as e:
+            logging.error("Failed to execute hyprctl eval: %s", e)
+            return False
+    else:
+        batch_parts = []
+        for target_id, addr in moves:
+            batch_parts.append(f"dispatch movetoworkspacesilent {target_id},address:{addr}")
+        if target_active is not None and target_active != active_id:
+            batch_parts.append(f"dispatch workspace {target_active}")
+
+        batch_cmd = ";".join(batch_parts)
+        try:
+            res = subprocess.run(
+                ["hyprctl", "--batch", batch_cmd],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if res.returncode != 0 or "error:" in res.stdout.lower() or "error:" in res.stderr.lower():
+                logging.error("hyprctl batch failed (code %d): %s", res.returncode, res.stderr or res.stdout)
+                return False
+            logging.info("Compacted workspaces via batch dispatch: %d move(s)", len(moves))
+            return True
+        except Exception as e:
+            logging.error("Failed to execute hyprctl --batch: %s", e)
+            return False
 
 def compact_workspaces() -> bool:
     clients = run_hyprctl_json("clients")
@@ -76,6 +156,22 @@ def compact_workspaces() -> bool:
     if active_id is not None and isinstance(active_id, int) and active_id > 0:
         slots.add(active_id)
 
+    # Also preserve active workspaces on any additional monitors
+    monitors = run_hyprctl_json("monitors")
+    if monitors and isinstance(monitors, list):
+        for m in monitors:
+            aws = m.get("activeWorkspace", {})
+            mid = aws.get("id")
+            if mid is not None and isinstance(mid, int) and mid > 0:
+                slots.add(mid)
+
+    # Respect persistent workspaces configured in Hyprland
+    workspaces = run_hyprctl_json("workspaces")
+    if workspaces and isinstance(workspaces, list):
+        for ws in workspaces:
+            if ws.get("ispersistent") and isinstance(ws.get("id"), int) and ws.get("id") > 0:
+                slots.add(ws.get("id"))
+
     occupied = sorted(slots)
 
     moves = []
@@ -92,25 +188,7 @@ def compact_workspaces() -> bool:
             if idx + 1 != active_id:
                 target_active = idx + 1
 
-    if not moves and (target_active is None or target_active == active_id):
-        return False
-
-    batch_parts = []
-    for target_id, addr in moves:
-        batch_parts.append(f"dispatch movetoworkspacesilent {target_id},address:{addr}")
-    if target_active is not None and target_active != active_id:
-        batch_parts.append(f"dispatch workspace {target_active}")
-
-    if not batch_parts:
-        return False
-
-    batch_cmd = ";".join(batch_parts)
-    try:
-        subprocess.run(["hyprctl", "--batch", batch_cmd], check=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        return True
-    except Exception:
-        return False
+    return execute_compaction(moves, target_active, active_id)
 
 def main():
     lock_fd = acquire_lock()
@@ -122,6 +200,9 @@ def main():
 
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
+
+    lua = is_lua_mode()
+    logging.info("Starting workspace compactor daemon (mode: %s)", "Lua" if lua else "Legacy batch")
 
     # Initial check on daemon start
     compact_workspaces()
@@ -135,6 +216,7 @@ def main():
         "workspace",
         "workspacev2",
         "focusedmon",
+        "openwindow",
     }
 
     while running:
@@ -142,19 +224,19 @@ def main():
             sock_path = get_socket_path()
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             s.connect(sock_path)
-        except Exception:
+            logging.info("Connected to Hyprland socket2: %s", sock_path)
+        except Exception as e:
+            logging.warning("Unable to connect to Hyprland socket2: %s. Retrying in 1s...", e)
             time.sleep(1.0)
             continue
 
         buf = ""
         last_trigger = 0.0
         pending_compact = False
-        follow_up_compact = False
-        follow_up_time = 0.0
         busy = False
 
         while running:
-            timeout = 0.05 if (pending_compact or follow_up_compact) else 1.0
+            timeout = 0.05 if pending_compact else 1.0
             try:
                 r, _, _ = select.select([s], [], [], timeout)
             except select.error:
@@ -165,6 +247,7 @@ def main():
                 try:
                     data = s.recv(4096).decode("utf-8", errors="ignore")
                     if not data:
+                        logging.warning("Hyprland socket2 disconnected (EOF received).")
                         break
                     buf += data
                     while "\n" in buf:
@@ -177,32 +260,12 @@ def main():
                         if not busy and event_name in trigger_events:
                             pending_compact = True
                             last_trigger = now
-                except Exception:
+                except Exception as e:
+                    logging.warning("Error reading from socket2: %s", e)
                     break
 
             if pending_compact and (now - last_trigger >= 0.15):
                 pending_compact = False
-                busy = True
-                try:
-                    compact_workspaces()
-                    follow_up_compact = True
-                    follow_up_time = now + 0.15
-                    # Drain socket to absorb events caused by our own batch command
-                    s.setblocking(False)
-                    try:
-                        while True:
-                            drain = s.recv(4096)
-                            if not drain:
-                                break
-                    except (BlockingIOError, socket.error):
-                        pass
-                    finally:
-                        s.setblocking(True)
-                finally:
-                    busy = False
-
-            if follow_up_compact and (now >= follow_up_time):
-                follow_up_compact = False
                 busy = True
                 try:
                     compact_workspaces()
@@ -216,6 +279,8 @@ def main():
 
         if running:
             time.sleep(0.5)
+
+    logging.info("Workspace compactor daemon exiting cleanly.")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--once":
