@@ -17,7 +17,13 @@ local function updateBattery()
 
   local isCharging = false
   local s = cleanStatus:lower()
-  if s:find("charging") and not s:find("not charging") and not s:find("discharging") then
+  local acOnline = noctalia.readFile("/sys/class/power_supply/ADP1/online")
+  if not acOnline then
+    acOnline = noctalia.readFile("/sys/class/power_supply/AC/online")
+  end
+  local isAc = acOnline and acOnline:find("1") ~= nil
+
+  if (s:find("charging") or isAc) and not s:find("discharging") then
     isCharging = true
   end
 
