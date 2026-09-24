@@ -270,7 +270,6 @@ hl.bind(mainMod .. " + space",   hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + F",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd(clipboard))
-hl.bind(mainMod .. " + c",       hl.dsp.exec_cmd(clipboard))
 hl.bind(mainMod .. " + B",        hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + L",        hl.dsp.exec_cmd("loginctl lock-session"))
 
