@@ -70,6 +70,8 @@ local terminal    = "ghostty"
 local fileManager = "nautilus"
 local browser     = "google-chrome"
 local menu        = "noctalia msg panel-toggle launcher"
+local clipboard   = "noctalia msg panel-toggle clipboard"
+local editor      = "zed"
 
 --------------------------------------------------------------------------------
 -- 5. Autostart Pipeline
@@ -94,6 +96,9 @@ hl.on("hyprland.start", function ()
 
     -- Dynamic workspace compactor daemon
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/compact_workspaces.py")
+
+    -- Enable caffeine by default (idle inhibitor)
+    hl.exec_cmd("sh -c 'sleep 1 && noctalia msg caffeine-enable'")
 end)
 
 --------------------------------------------------------------------------------
@@ -258,11 +263,15 @@ hl.window_rule({
 local mainMod = "SUPER"
 
 -- Applications
-hl.bind(mainMod .. " + T",      hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + F",      hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + B",      hl.dsp.exec_cmd(browser))
-hl.bind(mainMod .. " + L",      hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind(mainMod .. " + Return",  hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + T",       hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + space",   hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + F",       hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd(editor))
+hl.bind(mainMod .. " + ALT + C", hl.dsp.exec_cmd(clipboard))
+hl.bind(mainMod .. " + B",       hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + L",       hl.dsp.exec_cmd("loginctl lock-session"))
 
 -- Window management
 hl.bind(mainMod .. " + Q",         hl.dsp.window.close())
