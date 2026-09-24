@@ -33,13 +33,20 @@ order = [ "default" ]
     contact_shadow = false
     enabled = true
     end = [
+        "emoji",
+        "spacer_1cm",
         "network_rx",
         "network_tx",
-        "tray",
+        "spacer_05cm",
         "clipboard",
+        "spacer_05cm",
         "local/custom_bar:bt_battery",
+        "spacer_025cm",
         "network",
-        "local/custom_bar:laptop_battery",
+        "spacer_025cm",
+        "volume",
+        "spacer_025cm",
+        "brightness",
         "session"
     ]
     font_scale = 1.0
@@ -62,7 +69,7 @@ order = [ "default" ]
     shadow = true
     show_on_workspace_switch = true
     smart_auto_hide = false
-    start = [ "workspaces", "spacer_1cm", "active_window", "spacer_1cm", "weather" ]
+    start = [ "workspaces", "spacer_1cm", "active_window", "spacer_05cm", "weather" ]
     thickness = 34
     widget_spacing = 6
 
@@ -598,10 +605,13 @@ unit = "metric"
 [widget.active_window]
 display = "icon_only"
 icon_size = 16.0
-max_length = 260.0
-min_length = 80.0
+max_length = 40.0
+min_length = 24.0
 title_scroll = "none"
 type = "active_window"
+
+    [widget.active_window.actions]
+    right = "plugin local/custom_bar:bt_battery focused quit"
 
 [widget.cpu]
 stat = "cpu_usage"
@@ -656,12 +666,28 @@ interactive = false
 type = "spacer"
 
 [widget.spacer_1cm]
-length = 45.0
+length = 45
 type = "spacer"
 
 [widget.spacer_05cm]
 length = 23
 type = "spacer"
+
+[widget.spacer_025cm]
+length = 11
+type = "spacer"
+
+[widget.spacer_2cm]
+length = 90
+type = "spacer"
+
+[widget.emoji]
+glyph = "mood-smile"
+tooltip = "Emoji Picker"
+type = "custom_button"
+
+    [widget.emoji.actions]
+    left = "panel-toggle launcher /emo"
 
 [widget.clock]
 format = "{:%a %b %d  %H:%M:%S}"

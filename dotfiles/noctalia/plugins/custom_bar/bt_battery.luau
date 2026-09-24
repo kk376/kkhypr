@@ -24,4 +24,10 @@ function update()
   refresh()
 end
 
+function onIpc(event, payload)
+  if event == "quit" then
+    noctalia.runAsync("/home/kk376/.config/hypr/scripts/app_menu.sh", function() end)
+  end
+end
+
 refresh()
