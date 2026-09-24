@@ -38,12 +38,11 @@ order = [ "default" ]
         "tray",
         "notifications",
         "clipboard",
-        "volume",
+        "headset_battery",
         "brightness",
         "network",
-        "bluetooth",
+        "volume",
         "battery",
-        "control-center",
         "session"
     ]
     font_scale = 1.0
@@ -666,10 +665,33 @@ type = "spacer"
 format = "{:%a %b %d  %H:%M:%S}"
 type = "clock"
 
+[widget.workspaces]
+hide_when_empty = true
+type = "workspaces"
+
 [widget.volume]
 device = "output"
-show_label = true
+show_label = false
 type = "volume"
+
+[widget.brightness]
+show_label = false
+type = "brightness"
+
+[widget.network]
+show_label = false
+type = "network"
+
+[widget.headset_battery]
+device = "headset_dev_41_42_FF_0A_2A_6F"
+label_content = "percent"
+show_label = true
+type = "battery"
+
+[widget.bluetooth]
+hide_when_no_connected_device = true
+show_label = false
+type = "bluetooth"
 
 [widget.temp]
 stat = "cpu_temp"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Hyprland Dynamic Workspace Compactor Daemon
-Monitors Hyprland socket2 for window close and move events.
+Monitors Hyprland socket2 for window close, workspace destruction, and window move events.
 Automatically compacts active workspaces to remove numeric gaps (1, 2, 3...)
 and shifts subsequent workspaces down when an intermediate workspace is emptied.
 """
@@ -43,6 +43,9 @@ def compact_workspaces() -> bool:
     # Group client addresses by positive integer workspace IDs
     ws_clients = {}
     for c in clients:
+        # Ignore unmapped / closing windows
+        if c.get("mapped") == 0:
+            continue
         ws = c.get("workspace", {})
         ws_id = ws.get("id")
         if ws_id is not None and isinstance(ws_id, int) and ws_id > 0:
@@ -52,8 +55,9 @@ def compact_workspaces() -> bool:
 
     occupied = sorted(ws_clients.keys())
     if not occupied:
-        if active_id is not None and active_id > 1:
-            subprocess.run(["hyprctl", "dispatch", "workspace", "1"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if active_id is not None and active_id != 1:
+            subprocess.run(["hyprctl", "dispatch", "workspace", "1"],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return False
 
     moves = []
@@ -63,18 +67,18 @@ def compact_workspaces() -> bool:
             for addr in ws_clients[old_id]:
                 moves.append((target_id, addr))
 
+    max_target = len(occupied)
     target_active = None
-    max_occupied = occupied[-1]
     if active_id is not None and active_id > 0:
-        if active_id not in ws_clients:
-            if active_id > max_occupied:
-                target_active = max_occupied
-        else:
+        if active_id in ws_clients:
             idx = occupied.index(active_id)
             if idx + 1 != active_id:
                 target_active = idx + 1
+        else:
+            # Active workspace has no windows: switch to closest valid workspace
+            target_active = min(active_id, max_target)
 
-    if not moves and target_active is None:
+    if not moves and (target_active is None or target_active == active_id):
         return False
 
     batch_parts = []
@@ -83,9 +87,13 @@ def compact_workspaces() -> bool:
     if target_active is not None and target_active != active_id:
         batch_parts.append(f"dispatch workspace {target_active}")
 
+    if not batch_parts:
+        return False
+
     batch_cmd = ";".join(batch_parts)
     try:
-        subprocess.run(["hyprctl", "--batch", batch_cmd], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["hyprctl", "--batch", batch_cmd], check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return True
     except Exception:
         return False
@@ -100,6 +108,17 @@ def main():
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
 
+    # Initial check on daemon start
+    compact_workspaces()
+
+    trigger_events = {
+        "closewindow",
+        "destroyworkspace",
+        "destroyworkspacev2",
+        "movewindow",
+        "movewindowv2",
+    }
+
     while running:
         try:
             sock_path = get_socket_path()
@@ -112,15 +131,18 @@ def main():
         buf = ""
         last_trigger = 0.0
         pending_compact = False
+        follow_up_compact = False
+        follow_up_time = 0.0
         busy = False
 
         while running:
-            timeout = 0.05 if pending_compact else 1.0
+            timeout = 0.05 if (pending_compact or follow_up_compact) else 1.0
             try:
                 r, _, _ = select.select([s], [], [], timeout)
             except select.error:
                 break
 
+            now = time.time()
             if r:
                 try:
                     data = s.recv(4096).decode("utf-8", errors="ignore")
@@ -134,18 +156,19 @@ def main():
                             continue
                         event_name = line.split(">>", 1)[0] if ">>" in line else line
 
-                        if not busy and event_name in ("closewindow", "movewindow"):
+                        if not busy and event_name in trigger_events:
                             pending_compact = True
-                            last_trigger = time.time()
+                            last_trigger = now
                 except Exception:
                     break
 
-            if pending_compact and (time.time() - last_trigger >= 0.08):
+            if pending_compact and (now - last_trigger >= 0.15):
                 pending_compact = False
                 busy = True
                 try:
                     compact_workspaces()
-                    time.sleep(0.05)
+                    follow_up_compact = True
+                    follow_up_time = now + 0.15
                     # Drain socket to absorb events caused by our own batch command
                     s.setblocking(False)
                     try:
@@ -157,6 +180,14 @@ def main():
                         pass
                     finally:
                         s.setblocking(True)
+                finally:
+                    busy = False
+
+            if follow_up_compact and (now >= follow_up_time):
+                follow_up_compact = False
+                busy = True
+                try:
+                    compact_workspaces()
                 finally:
                     busy = False
 
