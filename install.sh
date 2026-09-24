@@ -199,6 +199,7 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" "$CONFIG_DIR/hypr/hypridle.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprlock.conf" "$CONFIG_DIR/hypr/hyprlock.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprpaper.conf" "$CONFIG_DIR/hypr/hyprpaper.conf"
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/compact_workspaces.py" "$CONFIG_DIR/hypr/scripts/compact_workspaces.py"
 
     # Noctalia shell
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
