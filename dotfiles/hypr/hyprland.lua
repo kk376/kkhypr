@@ -19,6 +19,7 @@ hl.env("VK_LOADER_DRIVERS_SELECT", "*radeon*")
 hl.env("LIBVA_DRIVER_NAME", "radeonsi")
 hl.env("VDPAU_DRIVER", "radeonsi")
 hl.env("__GLX_VENDOR_LIBRARY_NAME", "mesa")
+hl.env("PATH", os.getenv("HOME") .. "/.local/bin:" .. os.getenv("HOME") .. "/.cargo/bin:" .. (os.getenv("PATH") or "/usr/local/bin:/usr/bin"))
 
 --------------------------------------------------------------------------------
 -- 2. Toolkit & Wayland Integration
@@ -71,7 +72,7 @@ local fileManager = "nautilus"
 local browser     = "google-chrome"
 local menu        = "noctalia msg panel-toggle launcher"
 local clipboard   = "noctalia msg panel-toggle clipboard"
-local editor      = "zed"
+local editor      = os.getenv("HOME") .. "/.local/bin/zed"
 
 --------------------------------------------------------------------------------
 -- 5. Autostart Pipeline
@@ -269,7 +270,9 @@ hl.bind(mainMod .. " + space",   hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + F",       hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd(editor))
+hl.bind(mainMod .. " + c",       hl.dsp.exec_cmd(editor))
 hl.bind(mainMod .. " + ALT + C", hl.dsp.exec_cmd(clipboard))
+hl.bind(mainMod .. " + ALT + c", hl.dsp.exec_cmd(clipboard))
 hl.bind(mainMod .. " + B",       hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + L",       hl.dsp.exec_cmd("loginctl lock-session"))
 
@@ -322,9 +325,11 @@ hl.bind("XF86MonBrightnessDown",  hl.dsp.exec_cmd("brightnessctl set 5%-"),     
 
 -- Screenshots
 local screenshotScript = os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh"
-hl.bind("Print",                       hl.dsp.exec_cmd(screenshotScript .. " area"))
-hl.bind(mainMod .. " + Print",         hl.dsp.exec_cmd(screenshotScript .. " screen"))
-hl.bind(mainMod .. " + ALT + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + ALT + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + Sys_Req",       hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind("Print",                        hl.dsp.exec_cmd(screenshotScript .. " area"))
+hl.bind(mainMod .. " + Print",          hl.dsp.exec_cmd(screenshotScript .. " screen"))
+hl.bind(mainMod .. " + ALT + Print",    hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + ALT + Sys_Req",  hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + Sys_Req",        hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + MOD5 + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + MOD5 + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 
