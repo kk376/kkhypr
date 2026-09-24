@@ -38,10 +38,8 @@ order = [ "default" ]
         "tray",
         "notifications",
         "clipboard",
-        "headset_battery",
-        "brightness",
+        "bluetooth",
         "network",
-        "volume",
         "battery",
         "session"
     ]
@@ -682,15 +680,10 @@ type = "brightness"
 show_label = false
 type = "network"
 
-[widget.headset_battery]
-device = "headset_dev_41_42_FF_0A_2A_6F"
-label_content = "percent"
-show_label = true
-type = "battery"
-
 [widget.bluetooth]
+hide_when_adapter_off = true
 hide_when_no_connected_device = true
-show_label = false
+show_label = true
 type = "bluetooth"
 
 [widget.temp]
