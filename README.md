@@ -1,6 +1,6 @@
 # kkhypr
 
-Reproducible, zero-freeze Wayland desktop configuration for Fedora 44+, Hyprland 0.56+, Noctalia Shell v5, Ghostty, and GreetD.
+Reproducible, zero-freeze Wayland desktop configuration for Fedora 44+, Hyprland 0.56+, Noctalia Shell v5, Ghostty, and GDM.
 
 Target hardware: AMD Ryzen 5 7535HS (Radeon 680M primary iGPU) paired with an NVIDIA GeForce RTX 2050 Mobile (dGPU).
 
@@ -22,13 +22,13 @@ Linux kernel DRM assignment on hybrid laptops frequently maps `/dev/dri/card0` t
    Restricts Vulkan driver initialization to the Radeon Mesa driver. GTK4 and Libadwaita applications (such as Nautilus) launch instantly without probing the NVIDIA driver.
 
 ### 2. Desktop Components
-* **Compositor**: [Hyprland 0.56](https://hyprland.org) via Copr `sdegler/hyprland`
+* **Compositor**: [Hyprland 0.56](https://hyprland.org) via Copr `lionheartp/Hyprland` (configured via native Lua)
 * **Shell and Widgets**: [Noctalia Desktop Shell v5](https://noctalia.dev) (top bar, launcher, quick settings, notifications, OSD)
 * **Terminal Emulator**: [Ghostty](https://ghostty.org) (native GTK4/Wayland, zero weak-dependency bloat)
 * **Idle Daemon**: `hypridle` (dimming, session locking, DPMS off, and suspend)
 * **Screen Locker**: `hyprlock` (hardware-accelerated blurred backdrop and PAM authentication)
 * **Wallpaper Engine**: `hyprpaper`
-* **Display Manager / Greeter**: `greetd` with `tuigreet` (or `noctalia-greeter`)
+* **Display Manager**: GDM (GNOME Display Manager) with Wayland session support
 
 ---
 
@@ -38,17 +38,16 @@ Linux kernel DRM assignment on hybrid laptops frequently maps `/dev/dri/card0` t
 kkhypr/
 ├── dotfiles/
 │   ├── hypr/
-│   │   ├── hyprland.conf     # Hyprland 0.56 compositor configuration
+│   │   ├── hyprland.lua      # Hyprland 0.56+ native Lua configuration
+│   │   ├── hyprland.conf     # Legacy configuration fallback
 │   │   ├── hypridle.conf     # Idle and power management daemon
 │   │   ├── hyprlock.conf     # Lockscreen configuration
 │   │   └── hyprpaper.conf    # Wallpaper daemon configuration
 │   └── noctalia/
 │       └── config.toml       # Noctalia Shell v5 layout and widget config
 ├── system/
-│   ├── environment.d/
-│   │   └── 10-vulkan-hybrid.conf # Systemd user environment GPU rules
-│   └── greetd/
-│       └── config.toml       # GreetD daemon configuration
+│   └── environment.d/
+│       └── 10-vulkan-hybrid.conf # Systemd user environment GPU rules
 ├── install.sh                # Automated, idempotent symlink deployment script
 ├── Makefile                  # Build, lint, check, and status targets
 └── README.md
@@ -63,12 +62,12 @@ kkhypr/
 Install the required packages from Fedora repositories and the Hyprland Copr:
 
 ```bash
-# Enable the maintained Fedora 44 Hyprland Copr
-sudo dnf copr enable -y sdegler/hyprland
+# Enable the recommended Fedora 44 Hyprland Copr
+sudo dnf copr enable -y lionheartp/Hyprland
 
 # Install core packages
 sudo dnf install -y hyprland xdg-desktop-portal-hyprland hyprpolkitagent \
-    hyprpaper hypridle hyprlock noctalia greetd tuigreet \
+    hyprpaper hypridle hyprlock noctalia \
     brightnessctl pipewire-utils grim slurp wl-clipboard
 
 # Remove unwanted terminal dependencies if pulled as weak recommendations
@@ -85,6 +84,7 @@ make lint
 
 This target runs:
 * `shellcheck install.sh`
+* `hyprland --verify-config -c dotfiles/hypr/hyprland.lua`
 * `hyprland --verify-config -c dotfiles/hypr/hyprland.conf`
 * `noctalia config validate dotfiles/noctalia/config.toml`
 
@@ -103,7 +103,7 @@ make install
 ```
 
 The script links:
-* `dotfiles/hypr/*` -> `~/.config/hypr/*`
+* `dotfiles/hypr/*` -> `~/.config/hypr/*` (including `hyprland.lua`)
 * `dotfiles/noctalia/config.toml` -> `~/.config/noctalia/config.toml`
 * `system/environment.d/10-vulkan-hybrid.conf` -> `~/.config/environment.d/10-vulkan-hybrid.conf`
 
@@ -157,20 +157,15 @@ The primary modifier key is `SUPER` (Windows key).
 
 ---
 
-## GreetD Display Manager Setup
+## Display Manager (GDM) Setup
 
-To use `greetd` instead of GDM:
+GDM (GNOME Display Manager) is the official and recommended display manager for `kkhypr`. It coordinates Plymouth boot-splash handoff cleanly without DRM master lock contention and launches Hyprland reliably:
 
-1. Copy the repository configuration to the system directory:
-   ```bash
-   sudo cp system/greetd/config.toml /etc/greetd/config.toml
-   ```
+```bash
+sudo systemctl enable --now gdm
+```
 
-2. Test Hyprland first from your existing display manager session menu. Once verified, enable GreetD:
-   ```bash
-   sudo systemctl disable gdm
-   sudo systemctl enable greetd
-   ```
+Select **Hyprland** from the session gear menu on the GDM login screen.
 
 ---
 

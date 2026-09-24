@@ -8,7 +8,9 @@ all: lint check
 lint:
 	@echo "==> Running shellcheck on installer..."
 	shellcheck install.sh
-	@echo "==> Verifying Hyprland 0.56 configuration..."
+	@echo "==> Verifying Hyprland 0.56 native Lua configuration..."
+	hyprland --verify-config -c dotfiles/hypr/hyprland.lua
+	@echo "==> Verifying Hyprland 0.56 legacy configuration..."
 	hyprland --verify-config -c dotfiles/hypr/hyprland.conf
 	@echo "==> Validating Noctalia shell configuration..."
 	noctalia config validate dotfiles/noctalia/config.toml
@@ -25,6 +27,7 @@ install:
 
 status:
 	@echo "==> Configuration symlink status:"
+	@ls -la ~/.config/hypr/hyprland.lua 2>/dev/null || echo "hyprland.lua: not linked"
 	@ls -la ~/.config/hypr/hyprland.conf 2>/dev/null || echo "hyprland.conf: not linked"
 	@ls -la ~/.config/noctalia/config.toml 2>/dev/null || echo "noctalia config.toml: not linked"
 	@ls -la ~/.config/environment.d/10-vulkan-hybrid.conf 2>/dev/null || echo "10-vulkan-hybrid.conf: not linked"
