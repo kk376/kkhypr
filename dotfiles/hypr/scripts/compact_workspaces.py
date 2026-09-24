@@ -6,6 +6,7 @@ Automatically compacts active workspaces to remove numeric gaps (1, 2, 3...)
 and shifts subsequent workspaces down when an intermediate workspace is emptied.
 """
 
+import fcntl
 import json
 import os
 import select
@@ -14,6 +15,16 @@ import socket
 import subprocess
 import sys
 import time
+
+def acquire_lock():
+    xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    lock_file = os.path.join(xdg_runtime, "hypr_workspace_compactor.lock")
+    try:
+        lock_fd = open(lock_file, "w")
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return lock_fd
+    except (BlockingIOError, OSError):
+        sys.exit(0)
 
 def get_socket_path() -> str:
     xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
@@ -53,30 +64,33 @@ def compact_workspaces() -> bool:
             if addr:
                 ws_clients.setdefault(ws_id, []).append(addr)
 
-    occupied = sorted(ws_clients.keys())
-    if not occupied:
-        if active_id is not None and active_id != 1:
-            subprocess.run(["hyprctl", "dispatch", "workspace", "1"],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # If no windows exist anywhere on the desktop, do not force-switch workspaces;
+    # allow the user to remain on their current empty desktop (homescreen).
+    if not ws_clients:
         return False
+
+    # The current active workspace is treated as held while the user is actively on it.
+    # This ensures that when all windows on the active desktop are closed, the desktop is not
+    # immediately destroyed or re-indexed until the user explicitly switches away to another desktop.
+    slots = set(ws_clients.keys())
+    if active_id is not None and isinstance(active_id, int) and active_id > 0:
+        slots.add(active_id)
+
+    occupied = sorted(slots)
 
     moves = []
     for i, old_id in enumerate(occupied):
         target_id = i + 1
         if old_id != target_id:
-            for addr in ws_clients[old_id]:
+            for addr in ws_clients.get(old_id, []):
                 moves.append((target_id, addr))
 
-    max_target = len(occupied)
     target_active = None
-    if active_id is not None and active_id > 0:
-        if active_id in ws_clients:
+    if active_id is not None and isinstance(active_id, int) and active_id > 0:
+        if active_id in occupied:
             idx = occupied.index(active_id)
             if idx + 1 != active_id:
                 target_active = idx + 1
-        else:
-            # Active workspace has no windows: switch to closest valid workspace
-            target_active = min(active_id, max_target)
 
     if not moves and (target_active is None or target_active == active_id):
         return False
@@ -99,6 +113,7 @@ def compact_workspaces() -> bool:
         return False
 
 def main():
+    lock_fd = acquire_lock()
     running = True
 
     def handle_signal(sig, frame):
@@ -117,6 +132,9 @@ def main():
         "destroyworkspacev2",
         "movewindow",
         "movewindowv2",
+        "workspace",
+        "workspacev2",
+        "focusedmon",
     }
 
     while running:
