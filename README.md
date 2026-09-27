@@ -166,7 +166,36 @@ sudo dnf install -y hyprland xdg-desktop-portal-hyprland hyprpolkitagent \
 sudo dnf remove -y kitty kitty-kitten kitty-shell-integration kitty-terminfo
 ```
 
-### 2. Validate Configurations
+### 2. Disable Redundant Fedora Background Services (Reclaims ~246 MB RAM)
+
+Fedora Workstation enables background services that are redundant for a lightweight tiling desktop environment. Disabling them frees approximately 246 MB of idle RAM:
+
+* **ABRT (Automatic Bug Reporting Tool)**: Four background daemons (`abrtd`, `abrt-journal-core`, `abrt-oops`, `abrt-xorg`) consume ~190 MB RAM waiting to collect core dumps for Red Hat Bugzilla.
+* **Rsyslog**: Legacy syslog daemon consuming ~56 MB RAM, redundant because `systemd-journald` captures, indexes, and retains all system logs natively.
+
+Disable both services immediately:
+
+```bash
+# Disable ABRT crash reporting daemons (~190 MB idle RAM)
+sudo systemctl disable --now abrtd.service abrt-journal-core.service abrt-oops.service abrt-xorg.service
+
+# Disable legacy rsyslog daemon (~56 MB idle RAM)
+sudo systemctl disable --now rsyslog.service
+```
+
+Alternatively, run the Makefile target:
+
+```bash
+make optimize-services
+```
+
+Or pass `--optimize-services` during deployment:
+
+```bash
+./install.sh --optimize-services
+```
+
+### 3. Validate Configurations
 
 Run static analysis and compositor verification before deploying:
 
@@ -180,7 +209,7 @@ This target runs:
 * `hyprland --verify-config -c dotfiles/hypr/hyprland.conf`
 * `noctalia config validate dotfiles/noctalia/config.toml`
 
-### 3. Deploy Symlinks
+### 4. Deploy Symlinks
 
 Simulate the deployment:
 
