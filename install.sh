@@ -15,6 +15,7 @@ TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 DRY_RUN=0
 CHECK_ONLY=0
 FORCE=0
+OPTIMIZE_SERVICES=0
 
 log_info() {
     printf "[INFO] %s\n" "$1"
@@ -37,10 +38,11 @@ usage() {
 Usage: ./install.sh [OPTIONS]
 
 Options:
-  --check        Run diagnostic validation on dependencies and configs only
-  --dry-run      Simulate installation actions without modifying files
-  --force        Overwrite existing targets if they are not matching symlinks
-  --help         Show this help message
+  --check              Run diagnostic validation on dependencies and configs only
+  --dry-run            Simulate installation actions without modifying files
+  --force              Overwrite existing targets if they are not matching symlinks
+  --optimize-services  Disable redundant Fedora services (ABRT, Rsyslog) to free RAM
+  --help               Show this help message
 EOF
     exit 0
 }
@@ -58,6 +60,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --force)
             FORCE=1
+            shift
+            ;;
+        --optimize-services)
+            OPTIMIZE_SERVICES=1
             shift
             ;;
         --help|-h)
@@ -221,6 +227,49 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"
 }
 
+optimize_services() {
+    log_info "Optimizing Fedora background services..."
+    local -a services=(
+        "abrtd.service"
+        "abrt-journal-core.service"
+        "abrt-oops.service"
+        "abrt-xorg.service"
+        "rsyslog.service"
+    )
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        for svc in "${services[@]}"; do
+            log_info "[DRY-RUN] Would disable service: $svc"
+        done
+        return 0
+    fi
+
+    if ! command -v systemctl >/dev/null 2>&1; then
+        log_warn "systemctl not found. Skipping service optimization."
+        return 0
+    fi
+
+    log_info "Disabling redundant crash reporting (ABRT) and legacy syslog daemons to reclaim ~246 MB RAM..."
+    local -a to_disable=()
+    for svc in "${services[@]}"; do
+        if systemctl list-unit-files "$svc" >/dev/null 2>&1; then
+            to_disable+=("$svc")
+        else
+            log_info "Service not present, skipping: $svc"
+        fi
+    done
+
+    if [[ ${#to_disable[@]} -gt 0 ]]; then
+        if sudo systemctl disable --now "${to_disable[@]}"; then
+            log_pass "Redundant background services disabled successfully: ${to_disable[*]}"
+        else
+            log_warn "Failed to disable some services. Check permissions or service state."
+        fi
+    else
+        log_pass "No targeted redundant services found or already removed."
+    fi
+}
+
 main() {
     log_info "Starting kkhypr deployment script..."
 
@@ -234,6 +283,11 @@ main() {
     fi
 
     deploy_configurations
+
+    if [[ "$OPTIMIZE_SERVICES" -eq 1 ]]; then
+        optimize_services
+    fi
+
     log_pass "Deployment finished successfully."
     log_info "To test Hyprland, log out and select 'Hyprland' in your display manager session menu."
 }

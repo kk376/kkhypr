@@ -98,6 +98,17 @@ Listens to BlueZ D-Bus property changes for connected Bluetooth peripherals and 
 * `hyprlock`: Fast, PAM-authenticated Wayland lockscreen with blurred screen background caching.
 * `hyprpaper`: Lightweight Wayland wallpaper utility handling smooth transitions.
 
+### Fedora Background Service Optimization (ABRT and Rsyslog)
+Fedora Workstation defaults include background systemd services designed for corporate workstation crash collection and legacy syslog aggregation. In an optimized tiling compositor environment, these daemons introduce unnecessary resident memory consumption:
+* `abrtd.service`, `abrt-journal-core.service`, `abrt-oops.service`, `abrt-xorg.service`: The Red Hat Automatic Bug Reporting Tool daemons remain resident in memory (~190 MB total RSS) to generate Red Hat Bugzilla crash packages.
+* `rsyslog.service`: Legacy syslog daemon (~56 MB RSS). This service is entirely redundant because `systemd-journald` natively handles all structured binary log capture, querying (`journalctl`), and persistence.
+
+Disabling both services immediately reclaims ~246 MB of physical RAM without degrading any desktop capabilities:
+```bash
+sudo systemctl disable --now abrtd.service abrt-journal-core.service abrt-oops.service abrt-xorg.service
+sudo systemctl disable --now rsyslog.service
+```
+
 ---
 
 ## 6. Systemd User Session Integration
