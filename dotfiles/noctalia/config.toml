@@ -575,7 +575,7 @@ source = "builtin"
 wallpaper_scheme = "m3-content"
 
     [theme.templates]
-    builtin_ids = []
+    builtin_ids = [ "ghostty" ]
     community_ids = []
     enable_builtin_templates = true
     enable_community_templates = true
