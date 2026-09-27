@@ -70,9 +70,11 @@ hl.monitor({
 local terminal    = "ghostty"
 local fileManager = "nautilus"
 local browser     = "google-chrome"
-local menu        = "noctalia msg panel-toggle launcher"
-local clipboard   = "noctalia msg panel-toggle clipboard"
-local editor      = os.getenv("HOME") .. "/.local/bin/zed"
+local menu          = "noctalia msg panel-toggle launcher"
+local clipboard     = "noctalia msg panel-toggle clipboard"
+local controlCenter = "noctalia msg panel-toggle control-center"
+local editor        = os.getenv("HOME") .. "/.local/bin/zed"
+local code          = "code"
 
 --------------------------------------------------------------------------------
 -- 5. Autostart Pipeline
@@ -264,49 +266,51 @@ hl.window_rule({
 local mainMod = "SUPER"
 
 -- Applications
-hl.bind(mainMod .. " + Return",  hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + T",       hl.dsp.exec_cmd(terminal))
-hl.bind(mainMod .. " + space",   hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + E",       hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + F",       hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + C",       hl.dsp.exec_cmd(clipboard))
-hl.bind(mainMod .. " + B",        hl.dsp.exec_cmd(browser))
-hl.bind(mainMod .. " + L",        hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind(mainMod .. " + Return",        hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + T",             hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + space",         hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + E",             hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + C",             hl.dsp.exec_cmd(clipboard))
+hl.bind(mainMod .. " + N",             hl.dsp.exec_cmd(controlCenter))
+hl.bind(mainMod .. " + B",             hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + Z",             hl.dsp.exec_cmd(editor))
+hl.bind(mainMod .. " + SHIFT + C",     hl.dsp.exec_cmd(code))
+hl.bind(mainMod .. " + Escape",        hl.dsp.exec_cmd("loginctl lock-session"))
 
 -- Window management
-hl.bind(mainMod .. " + Q",          hl.dsp.window.close())
-hl.bind(mainMod .. " + V",          hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + CTRL + F",   hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
-hl.bind("F11",                     hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
-hl.bind(mainMod .. " + P",         hl.dsp.window.pseudo())
-hl.bind(mainMod .. " + J",         hl.dsp.layout("togglesplit"))
-hl.bind(mainMod .. " + M",         hl.dsp.exit())
+hl.bind(mainMod .. " + Q",             hl.dsp.window.close())
+hl.bind(mainMod .. " + V",             hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + F",             hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
+hl.bind("F11",                         hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
+hl.bind(mainMod .. " + P",             hl.dsp.window.pseudo())
+hl.bind(mainMod .. " + S",             hl.dsp.layout("togglesplit"))
+hl.bind(mainMod .. " + SHIFT + M",     hl.dsp.exit())
 
 -- Focus navigation (Vim & Arrow keys)
-hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
-hl.bind(mainMod .. " + h",     hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + l",     hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + k",     hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + j",     hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + left",          hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right",         hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up",            hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down",          hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + h",             hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + l",             hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + k",             hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + j",             hl.dsp.focus({ direction = "down" }))
 
--- Window movement (Arrow & Vim keys)
-hl.bind(mainMod .. " + CTRL + left",  hl.dsp.window.move({ direction = "left" }))
-hl.bind(mainMod .. " + CTRL + right", hl.dsp.window.move({ direction = "right" }))
-hl.bind(mainMod .. " + CTRL + up",    hl.dsp.window.move({ direction = "up" }))
-hl.bind(mainMod .. " + CTRL + down",  hl.dsp.window.move({ direction = "down" }))
-hl.bind(mainMod .. " + CTRL + h",     hl.dsp.window.move({ direction = "left" }))
-hl.bind(mainMod .. " + CTRL + l",     hl.dsp.window.move({ direction = "right" }))
-hl.bind(mainMod .. " + CTRL + k",     hl.dsp.window.move({ direction = "up" }))
-hl.bind(mainMod .. " + CTRL + j",     hl.dsp.window.move({ direction = "down" }))
+-- Window movement (Vim & Arrow keys)
+hl.bind(mainMod .. " + SHIFT + left",  hl.dsp.window.move({ direction = "left" }))
+hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.move({ direction = "right" }))
+hl.bind(mainMod .. " + SHIFT + up",    hl.dsp.window.move({ direction = "up" }))
+hl.bind(mainMod .. " + SHIFT + down",  hl.dsp.window.move({ direction = "down" }))
+hl.bind(mainMod .. " + SHIFT + h",     hl.dsp.window.move({ direction = "left" }))
+hl.bind(mainMod .. " + SHIFT + l",     hl.dsp.window.move({ direction = "right" }))
+hl.bind(mainMod .. " + SHIFT + k",     hl.dsp.window.move({ direction = "up" }))
+hl.bind(mainMod .. " + SHIFT + j",     hl.dsp.window.move({ direction = "down" }))
 
 -- Workspaces 1 to 10
 for i = 1, 10 do
     local key = i % 10
     hl.bind(mainMod .. " + " .. key,              hl.dsp.focus({ workspace = i }))
-    hl.bind(mainMod .. " + CTRL + " .. key,       hl.dsp.window.move({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. key,      hl.dsp.window.move({ workspace = i }))
 end
 
 -- Mouse bindings
@@ -322,10 +326,9 @@ hl.bind("XF86MonBrightnessDown",  hl.dsp.exec_cmd("brightnessctl set 5%-"),     
 
 -- Screenshots
 local screenshotScript = os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh"
-hl.bind("Print",                        hl.dsp.exec_cmd(screenshotScript .. " area"))
-hl.bind(mainMod .. " + Print",          hl.dsp.exec_cmd(screenshotScript .. " screen"))
+hl.bind("Print",                          hl.dsp.exec_cmd(screenshotScript .. " area"))
+hl.bind(mainMod .. " + Print",            hl.dsp.exec_cmd(screenshotScript .. " screen"))
+hl.bind(mainMod .. " + SHIFT + Print",    hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
+hl.bind(mainMod .. " + SHIFT + Sys_Req",  hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 
--- Fullscreen save: Super + Ctrl + Print
-hl.bind(mainMod .. " + CTRL + Print",   hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
-hl.bind(mainMod .. " + CTRL + Sys_Req", hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 
