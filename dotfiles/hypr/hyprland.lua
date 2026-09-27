@@ -270,11 +270,11 @@ hl.bind(mainMod .. " + Return",        hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + T",             hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + space",         hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + E",             hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + C",             hl.dsp.exec_cmd(clipboard))
+hl.bind(mainMod .. " + C",             hl.dsp.exec_cmd(code))
 hl.bind(mainMod .. " + N",             hl.dsp.exec_cmd(controlCenter))
 hl.bind(mainMod .. " + B",             hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + Z",             hl.dsp.exec_cmd(editor))
-hl.bind(mainMod .. " + SHIFT + C",     hl.dsp.exec_cmd(code))
+hl.bind(mainMod .. " + SHIFT + C",     hl.dsp.exec_cmd(clipboard))
 hl.bind(mainMod .. " + Escape",        hl.dsp.exec_cmd("loginctl lock-session"))
 
 -- Window management
