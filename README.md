@@ -1,34 +1,63 @@
 # kkhypr
 
-Reproducible, zero-freeze Wayland desktop configuration for Fedora 44+, Hyprland 0.56+, Noctalia Shell v5, Ghostty, and GDM.
+[![Platform](https://img.shields.io/badge/Platform-Fedora_44%2B-blue.svg)](https://fedoraproject.org)
+[![Compositor](https://img.shields.io/badge/Compositor-Hyprland_0.56%2B-00ADD8.svg)](https://hyprland.org)
+[![Config](https://img.shields.io/badge/Config-Native_Lua-000080.svg)](https://www.lua.org)
+[![Shell](https://img.shields.io/badge/Shell-Noctalia_v5-purple.svg)](https://noctalia.dev)
+[![Terminal](https://img.shields.io/badge/Terminal-Ghostty-orange.svg)](https://ghostty.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Target hardware: AMD Ryzen 5 7535HS (Radeon 680M primary iGPU) paired with an NVIDIA GeForce RTX 2050 Mobile (dGPU).
+Reproducible, zero-freeze Wayland desktop configuration for Fedora 44+, Hyprland 0.56+, Noctalia Desktop Shell v5, Ghostty, and GDM.
+
+Target hardware reference: AMD Ryzen 5 7535HS (Radeon 680M primary iGPU) paired with NVIDIA GeForce RTX 2050 Mobile (dGPU).
 
 ---
 
 ## Architecture and Core Design Decisions
 
 ### 1. Dual-GPU Zero-Freeze DRM Routing
-Linux kernel DRM assignment on hybrid laptops frequently maps `/dev/dri/card0` to the discrete NVIDIA controller and `/dev/dri/card1` to the integrated AMD processor. Under standard Wayland compositors, launching desktop applications triggers Vulkan ICD discovery across all device nodes. This wakes the sleeping NVIDIA dGPU from ACPI D3cold power state, causing severe 2 to 3 second micro-freezes.
+Linux kernel DRM assignment on hybrid laptops frequently maps `/dev/dri/card0` to the discrete NVIDIA controller and `/dev/dri/card1` to the integrated AMD processor. Under standard Wayland compositors, launching desktop applications triggers Vulkan ICD discovery across all device nodes. This wakes the sleeping NVIDIA dGPU from ACPI D3cold power state, causing severe 2 to 3 second micro-freezes and rapid battery consumption.
 
 `kkhypr` eliminates these freezes through two deterministic environment rules:
 
 1. **Explicit DRM Card Ordering**:
    `AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0`
-   Binds the Aquamarine compositor backend directly to the integrated AMD Radeon 680M (`card1`). The NVIDIA card (`card0`) remains secondary and stays powered down in D3cold. Note that Aquamarine uses colon delimiters, so PCI by-path identifiers containing colons must be avoided.
+   Binds the Aquamarine compositor backend directly to the integrated AMD Radeon 680M (`card1`). The NVIDIA card (`card0`) remains secondary and stays powered down in D3cold. Note that Aquamarine uses colon delimiters, so PCI by-path identifiers containing colons must not be used.
 
 2. **Vulkan ICD Loader Filtration**:
    `VK_LOADER_DRIVERS_SELECT=*radeon*`
    Restricts Vulkan driver initialization to the Radeon Mesa driver. GTK4 and Libadwaita applications (such as Nautilus) launch instantly without probing the NVIDIA driver.
 
-### 2. Desktop Components
-* **Compositor**: [Hyprland 0.56](https://hyprland.org) via Copr `lionheartp/Hyprland` (configured via native Lua)
-* **Shell and Widgets**: [Noctalia Desktop Shell v5](https://noctalia.dev) (top bar, launcher, quick settings, notifications, OSD)
-* **Terminal Emulator**: [Ghostty](https://ghostty.org) (native GTK4/Wayland, zero weak-dependency bloat)
-* **Idle Daemon**: `hypridle` (dimming, session locking, DPMS off, and suspend)
-* **Screen Locker**: `hyprlock` (hardware-accelerated blurred backdrop and PAM authentication)
-* **Wallpaper Engine**: `hyprpaper`
-* **Display Manager**: GDM (GNOME Display Manager) with Wayland session support
+Read the complete guide in [docs/HARDWARE_DRM.md](docs/HARDWARE_DRM.md).
+
+### 2. Native Lua Configuration Engine
+Hyprland 0.56 introduces native Lua configuration support. `kkhypr` defines the entire compositor surface in `dotfiles/hypr/hyprland.lua`, using structured tables, loops, and callbacks while maintaining a fully validated `dotfiles/hypr/hyprland.conf` legacy fallback.
+
+### 3. Noctalia Desktop Shell v5 & Luau Plugins
+Desktop surfaces, menus, status indicators, and notification popups are driven by [Noctalia Desktop Shell v5](https://noctalia.dev). Custom Luau plugins in `dotfiles/noctalia/plugins/custom_bar/` provide:
+* Vertical cell battery status glyphs with direct power-supply sysfs telemetry.
+* Live Bluetooth peripheral connection and battery percentage monitoring via D-Bus.
+
+### 4. Dynamic Workspace Compaction
+In standard tiling environments, closing windows can leave orphaned or fragmented desktop numbers. The bundled compactor daemon (`dotfiles/hypr/scripts/compact_workspaces.py`) listens to Hyprland socket events and dynamically collapses open workspaces into a contiguous sequence.
+
+### 5. Ghostty Terminal Dynamic Palette Synchronization
+`kkhypr` integrates Ghostty with Noctalia's built-in template engine. When changing desktop wallpapers or switching theme palettes, Noctalia automatically renders dynamic color schemes into `~/.config/ghostty/themes/noctalia`, sets `theme = noctalia` in `config.ghostty`, and signals running Ghostty instances via GTK D-Bus and `SIGUSR2` for instant live reload.
+
+---
+
+## Desktop Stack
+
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| Compositor | Hyprland 0.56+ (via Copr `lionheartp/Hyprland`) | Wayland compositor configured with native Lua |
+| Desktop Shell | Noctalia Shell v5 | Top bar, launcher, quick settings, notifications, OSD |
+| Terminal | Ghostty | Native GPU-accelerated Wayland terminal emulator |
+| Display Manager | GDM (GNOME Display Manager) | Plymouth handoff and session launching |
+| Idle Daemon | `hypridle` | Screen dimming, session locking, and system suspend |
+| Screen Locker | `hyprlock` | Blurred backdrop lockscreen with PAM authentication |
+| Wallpaper | `hyprpaper` | Smooth wallpaper transitions |
+| Audio Server | PipeWire / WirePlumber | Audio routing and `wpctl` volume control |
 
 ---
 
@@ -36,22 +65,85 @@ Linux kernel DRM assignment on hybrid laptops frequently maps `/dev/dri/card0` t
 
 ```text
 kkhypr/
+├── .gitignore
+├── LICENSE                   # MIT License
+├── Makefile                  # Lifecycle targets: lint, check, dry-run, install, status
+├── README.md                 # Primary system documentation
+├── docs/                     # Specialized architectural guides
+│   ├── ARCHITECTURE.md       # Deep-dive system design and daemon architecture
+│   ├── HARDWARE_DRM.md       # Multi-GPU routing and D3cold power verification
+│   └── KEYBINDINGS.md        # Canonical shortcuts reference card
 ├── dotfiles/
 │   ├── hypr/
-│   │   ├── hyprland.lua      # Hyprland 0.56+ native Lua configuration
+│   │   ├── hyprland.lua      # Modern native Lua configuration
 │   │   ├── hyprland.conf     # Legacy configuration fallback
-│   │   ├── hypridle.conf     # Idle and power management daemon
-│   │   ├── hyprlock.conf     # Lockscreen configuration
-│   │   └── hyprpaper.conf    # Wallpaper daemon configuration
-│   └── noctalia/
-│       └── config.toml       # Noctalia Shell v5 layout and widget config
-├── system/
-│   └── environment.d/
-│       └── 10-vulkan-hybrid.conf # Systemd user environment GPU rules
-├── install.sh                # Automated, idempotent symlink deployment script
-├── Makefile                  # Build, lint, check, and status targets
-└── README.md
+│   │   ├── hypridle.conf     # Idle and suspend daemon configuration
+│   │   ├── hyprlock.conf     # Hardware-accelerated lockscreen configuration
+│   │   ├── hyprpaper.conf    # Wallpaper daemon configuration
+│   │   └── scripts/
+│   │       ├── app_menu.sh           # Active app context menu
+│   │       ├── bt_battery_sync.py    # D-Bus Bluetooth battery daemon
+│   │       ├── compact_workspaces.py # Dynamic workspace compactor
+│   │       └── screenshot.sh         # 3-tier screenshot script (grim/slurp)
+│   ├── noctalia/
+│   │   ├── config.toml       # Noctalia Shell v5 layout and template config
+│   │   └── plugins/          # Custom Luau status bar plugins
+│   └── systemd/
+│       └── user/             # Systemd user services and session targets
+├── install.sh                # Automated, idempotent deployment script
+└── system/
+    └── environment.d/
+        └── 10-vulkan-hybrid.conf # Systemd user environment GPU rules
 ```
+
+---
+
+## Keybindings Quick Reference
+
+The primary modifier key is `SUPER` (Windows key). See [docs/KEYBINDINGS.md](docs/KEYBINDINGS.md) for the complete reference.
+
+### Applications
+| Keybinding | Action | Command |
+| :--- | :--- | :--- |
+| `SUPER + Return` | Terminal | `ghostty` |
+| `SUPER + T` | Terminal (Alternative) | `ghostty` |
+| `SUPER + Space` | Application Launcher | `noctalia msg panel-toggle launcher` |
+| `SUPER + E` | File Manager | `nautilus` |
+| `SUPER + C` | VS Code | `code` |
+| `SUPER + Z` | Zed Editor | `~/.local/bin/zed` |
+| `SUPER + B` | Web Browser | `google-chrome` |
+| `SUPER + N` | Control Center | `noctalia msg panel-toggle control-center` |
+| `SUPER + SHIFT + C` | Clipboard History | `noctalia msg panel-toggle clipboard` |
+| `SUPER + Escape` | Lock Screen | `loginctl lock-session` |
+
+### Window Management
+| Keybinding | Action |
+| :--- | :--- |
+| `SUPER + Q` | Close active window (`killactive`) |
+| `SUPER + V` | Toggle floating mode (`togglefloating`) |
+| `SUPER + F` or `F11` | Toggle fullscreen mode (`fullscreen, 0`) |
+| `SUPER + P` | Toggle pseudotile mode (`pseudo`) |
+| `SUPER + S` | Toggle layout split direction (`layoutmsg, togglesplit`) |
+| `SUPER + SHIFT + M` | Exit Hyprland session |
+
+### Navigation and Movement
+| Keybinding | Action |
+| :--- | :--- |
+| `SUPER + [H/J/K/L]` or Arrows | Focus window in direction (left, down, up, right) |
+| `SUPER + SHIFT + [H/J/K/L]` or Arrows | Move active window in direction |
+| `SUPER + [1-0]` | Switch to workspace 1 through 10 |
+| `SUPER + SHIFT + [1-0]` | Move active window to workspace 1 through 10 |
+| `SUPER + Left Mouse Drag` | Move floating window |
+| `SUPER + Right Mouse Drag` | Resize floating window |
+
+### Media and Screenshots
+| Keybinding | Action |
+| :--- | :--- |
+| `Print` | Interactive area screenshot saved and copied to clipboard |
+| `SUPER + Print` | Full active display screenshot |
+| `XF86AudioRaiseVolume` / `Lower` | Volume up or down by 5% (`wpctl`) |
+| `XF86AudioMute` | Toggle audio mute (`wpctl`) |
+| `XF86MonBrightnessUp` / `Down` | Display brightness up or down by 5% (`brightnessctl`) |
 
 ---
 
@@ -59,10 +151,10 @@ kkhypr/
 
 ### 1. Prerequisites (Fedora 44+)
 
-Install the required packages from Fedora repositories and the Hyprland Copr:
+Install required packages from Fedora repositories and the Hyprland Copr:
 
 ```bash
-# Enable the recommended Fedora 44 Hyprland Copr
+# Enable the official Fedora 44 Hyprland Copr
 sudo dnf copr enable -y lionheartp/Hyprland
 
 # Install core packages
@@ -90,7 +182,7 @@ This target runs:
 
 ### 3. Deploy Symlinks
 
-Simulate the deployment first:
+Simulate the deployment:
 
 ```bash
 make dry-run
@@ -103,65 +195,19 @@ make install
 ```
 
 The script links:
-* `dotfiles/hypr/*` -> `~/.config/hypr/*` (including `hyprland.lua`)
+* `dotfiles/hypr/*` -> `~/.config/hypr/*`
 * `dotfiles/noctalia/config.toml` -> `~/.config/noctalia/config.toml`
+* `dotfiles/noctalia/plugins` -> `~/.config/noctalia/plugins`
+* `dotfiles/systemd/user/*` -> `~/.config/systemd/user/*`
 * `system/environment.d/10-vulkan-hybrid.conf` -> `~/.config/environment.d/10-vulkan-hybrid.conf`
 
 Any pre-existing non-symlink configuration is safely backed up with a timestamped suffix (`.backup.YYYYMMDD_HHMMSS`).
 
 ---
 
-## Keybindings Reference
-
-The primary modifier key is `SUPER` (Windows key).
-
-### Applications
-| Keybinding | Action | Command |
-| :--- | :--- | :--- |
-| `SUPER + Enter` | Launch Terminal | `ghostty` |
-| `SUPER + Space` | Toggle App Launcher | `noctalia msg panel-toggle launcher` |
-| `SUPER + E` | File Manager | `nautilus` |
-| `SUPER + C` | Code / Text Editor | `zed` |
-| `SUPER + Alt + C` | Clipboard History | `noctalia msg panel-toggle clipboard` |
-| `SUPER + B` | Web Browser | `google-chrome` |
-| `SUPER + L` | Lock Screen | `loginctl lock-session` |
-
-### Window Management
-| Keybinding | Action |
-| :--- | :--- |
-| `SUPER + Q` | Close active window (`killactive`) |
-| `SUPER + V` | Toggle floating mode (`togglefloating`) |
-| `SUPER + F` | Toggle fullscreen (`fullscreen, 0`) |
-| `SUPER + P` | Toggle pseudotile mode (`pseudo`) |
-| `SUPER + J` | Toggle layout split direction (`layoutmsg, togglesplit`) |
-| `SUPER + M` | Exit Hyprland session |
-
-### Navigation and Workspaces
-| Keybinding | Action |
-| :--- | :--- |
-| `SUPER + [H/J/K/L]` or Arrows | Focus window in direction (left, down, up, right) |
-| `SUPER + Shift + Arrows` | Move active window in direction |
-| `SUPER + [1-0]` | Switch to workspace 1 through 10 |
-| `SUPER + Shift + [1-0]` | Move active window to workspace 1 through 10 |
-| `SUPER + Left Mouse Drag` | Move floating window |
-| `SUPER + Right Mouse Drag` | Resize floating window |
-
-### Media, Brightness, and Screenshots
-| Keybinding | Action |
-| :--- | :--- |
-| `XF86AudioRaiseVolume` | Volume up 5% (`wpctl`) |
-| `XF86AudioLowerVolume` | Volume down 5% (`wpctl`) |
-| `XF86AudioMute` | Mute toggle (`wpctl`) |
-| `XF86MonBrightnessUp` | Screen brightness up 5% (`brightnessctl`) |
-| `XF86MonBrightnessDown` | Screen brightness down 5% (`brightnessctl`) |
-| `Print` | Interactive area screenshot saved to `~/Pictures/Screenshots/` and clipboard |
-| `SUPER + Shift + S` | Interactive area screenshot copied directly to clipboard |
-
----
-
 ## Display Manager (GDM) Setup
 
-GDM (GNOME Display Manager) is the official and recommended display manager for `kkhypr`. It coordinates Plymouth boot-splash handoff cleanly without DRM master lock contention and launches Hyprland reliably:
+GDM (GNOME Display Manager) is the standard display manager for `kkhypr`. It coordinates Plymouth boot-splash handoff cleanly without DRM master lock contention and launches Hyprland reliably:
 
 ```bash
 sudo systemctl enable --now gdm
@@ -173,7 +219,7 @@ Select **Hyprland** from the session gear menu on the GDM login screen.
 
 ## Power and GPU Verification
 
-To verify that the NVIDIA GPU is sleeping in D3cold while operating Hyprland:
+To verify that the NVIDIA dGPU is sleeping in D3cold while operating Hyprland:
 
 ```bash
 make status
@@ -186,3 +232,9 @@ cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
 ```
 
 Expected output during normal desktop usage: `suspended`.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
