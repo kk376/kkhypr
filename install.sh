@@ -222,6 +222,10 @@ deploy_configurations() {
     # Noctalia shell
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
 
+    # Ghostty terminal
+    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/config.ghostty" "$CONFIG_DIR/ghostty/config.ghostty"
+    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/gtk.css" "$CONFIG_DIR/ghostty/gtk.css"
+
     # Systemd session target and environment drop-in
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"
     deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"

@@ -1,0 +1,119 @@
+/* --- Tab Bar: Seamless with terminal background, no grey bar --- */
+
+/* Make the entire tab bar container transparent so it blends
+   with the terminal background. No visible grey strip. */
+tabbar,
+tabbar .box,
+tabbar tabbox,
+tabbar .start-action,
+tabbar .end-action {
+    background: transparent;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+tabbar {
+    min-height: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
+tabbar tabbox {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    min-height: 0px;
+}
+
+/* Hide default separator line and drop indicator */
+tabbar tabbox > separator {
+    opacity: 0;
+}
+
+tabbar tabbox > revealer > indicator {
+    opacity: 0;
+}
+
+/* Inactive Tab */
+tabbar tab,
+tabbar tabbox > tabboxchild tab {
+    background-color: #24283b;
+    color: #787c99;
+    border-radius: 4px;
+    margin: 1px 3px;
+    padding: 2px 10px;
+    font-weight: normal;
+    transition: background-color 150ms ease-in-out, color 150ms ease-in-out;
+}
+
+tabbar tab:hover:not(:selected) {
+    background-color: #33467c;
+    color: #c0caf5;
+}
+
+/* Active Tab */
+tabbar tab:selected,
+tabbar tab:selected:hover,
+tabbar tabbox > tabboxchild tab:selected {
+    background-color: #7aa2f7;
+    color: #16161e;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Labels inside active vs inactive tabs */
+tabbar tab:selected label {
+    color: #16161e;
+    font-weight: bold;
+}
+
+tabbar tab:not(:selected) label {
+    color: #787c99;
+}
+
+/* Hide and collapse Tab Close Button (Cross Icon) */
+tabbar tab button.tab-close-button,
+tabbar tab button.tab-close-button:hover,
+tabbar tab button.tab-close-button:active,
+tabbar tab button.tab-close-button:focus,
+tabbar tab button.close,
+tabbar tab .close-button,
+tabbar tab button.image-button:not(.tab-indicator) {
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    background: none;
+    box-shadow: none;
+    outline: none;
+    -gtk-icon-size: 0px;
+}
+
+tabbar tab button.tab-close-button image,
+tabbar tab button.close image,
+tabbar tab .close-button image,
+tabbar tab button.image-button:not(.tab-indicator) image {
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
+    -gtk-icon-size: 0px;
+}
+
+/* Kill the bottom toolbar background that causes the grey strip */
+toolbar,
+.toolbar,
+.bottom-bar,
+actionbar,
+actionbar > revealer > box {
+    background: transparent;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
+}

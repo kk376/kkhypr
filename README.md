@@ -85,6 +85,9 @@ kkhypr/
 │   │       ├── bt_battery_sync.py    # D-Bus Bluetooth battery daemon
 │   │       ├── compact_workspaces.py # Dynamic workspace compactor
 │   │       └── screenshot.sh         # 3-tier screenshot script (grim/slurp)
+│   ├── ghostty/
+│   │   ├── config.ghostty    # Ghostty terminal configuration
+│   │   └── gtk.css           # GTK4 tab bar and toolbar styling
 │   ├── noctalia/
 │   │   ├── config.toml       # Noctalia Shell v5 layout and template config
 │   │   └── plugins/          # Custom Luau status bar plugins
