@@ -36,6 +36,8 @@ status:
 	@ls -la ~/.config/hypr/hyprland.lua 2>/dev/null || echo "hyprland.lua: not linked"
 	@ls -la ~/.config/hypr/hyprland.conf 2>/dev/null || echo "hyprland.conf: not linked"
 	@ls -la ~/.config/noctalia/config.toml 2>/dev/null || echo "noctalia config.toml: not linked"
+	@ls -la ~/.config/ghostty/config.ghostty 2>/dev/null || echo "ghostty config.ghostty: not linked"
+	@ls -la ~/.config/ghostty/gtk.css 2>/dev/null || echo "ghostty gtk.css: not linked"
 	@ls -la ~/.config/environment.d/10-vulkan-hybrid.conf 2>/dev/null || echo "10-vulkan-hybrid.conf: not linked"
 	@echo "==> NVIDIA dGPU Runtime Power Status:"
 	@cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status 2>/dev/null || echo "dGPU node not accessible"
