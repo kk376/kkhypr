@@ -103,6 +103,7 @@ check_dependencies() {
     check_binary "hypridle" "true" || ((errors++))
     check_binary "hyprlock" "true" || ((errors++))
     check_binary "hyprpaper" "true" || ((errors++))
+    check_binary "hyprland-dialog" "false" || true
     check_binary "wpctl" "false" || true
     check_binary "brightnessctl" "false" || true
     check_binary "grim" "false" || true
