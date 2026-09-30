@@ -267,6 +267,12 @@ hl.window_rule({
 })
 
 hl.window_rule({
+    name  = "hyprland-dialog-float",
+    match = { class = "hyprland-dialog" },
+    float = true,
+})
+
+hl.window_rule({
     name    = "foot-opacity",
     match   = { class = "foot" },
     opacity = 0.85,

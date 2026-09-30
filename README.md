@@ -57,6 +57,7 @@ In standard tiling environments, closing windows can leave orphaned or fragmente
 | Idle Daemon | `hypridle` | Screen dimming, session locking, and system suspend |
 | Screen Locker | `hyprlock` | Blurred backdrop lockscreen with PAM authentication |
 | Wallpaper | `hyprpaper` | Smooth wallpaper transitions |
+| GUI Dialogs | `hyprland-guiutils` | Runtime system dialogs, error banners, and prompts |
 | Audio Server | PipeWire / WirePlumber | Audio routing and `wpctl` volume control |
 
 ---
@@ -161,7 +162,7 @@ Install required packages from Fedora repositories and the Hyprland Copr:
 sudo dnf copr enable -y lionheartp/Hyprland
 
 # Install core packages
-sudo dnf install -y hyprland xdg-desktop-portal-hyprland hyprpolkitagent \
+sudo dnf install -y hyprland xdg-desktop-portal-hyprland hyprpolkitagent hyprland-guiutils \
     hyprpaper hypridle hyprlock noctalia \
     brightnessctl pipewire-utils grim slurp wl-clipboard
 
