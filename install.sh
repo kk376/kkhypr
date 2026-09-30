@@ -16,6 +16,7 @@ DRY_RUN=0
 CHECK_ONLY=0
 FORCE=0
 OPTIMIZE_SERVICES=0
+SYSTEM_INSTALL=0
 
 log_info() {
     printf "[INFO] %s\n" "$1"
@@ -42,6 +43,7 @@ Options:
   --dry-run            Simulate installation actions without modifying files
   --force              Overwrite existing targets if they are not matching symlinks
   --optimize-services  Disable redundant Fedora services (ABRT, Rsyslog) to free RAM
+  --system             Deploy system-wide GPU isolation and GDM audio conflict fixes (requires sudo)
   --help               Show this help message
 EOF
     exit 0
@@ -64,6 +66,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --optimize-services)
             OPTIMIZE_SERVICES=1
+            shift
+            ;;
+        --system)
+            SYSTEM_INSTALL=1
             shift
             ;;
         --help|-h)
@@ -103,7 +109,7 @@ check_dependencies() {
     check_binary "hypridle" "true" || ((errors++))
     check_binary "hyprlock" "true" || ((errors++))
     check_binary "hyprpaper" "true" || ((errors++))
-    check_binary "hyprland-dialog" "false" || true
+    check_binary "hyprland-dialog" "true" || ((errors++))
     check_binary "wpctl" "false" || true
     check_binary "brightnessctl" "false" || true
     check_binary "grim" "false" || true
@@ -227,9 +233,16 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/config.ghostty" "$CONFIG_DIR/ghostty/config.ghostty"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/gtk.css" "$CONFIG_DIR/ghostty/gtk.css"
 
+    # WirePlumber audio and bluetooth policy
+    deploy_link "$SCRIPT_DIR/dotfiles/wireplumber/wireplumber.conf.d/50-bluez.conf" "$CONFIG_DIR/wireplumber/wireplumber.conf.d/50-bluez.conf"
+
     # Systemd session target and environment drop-in
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"
     deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"
+
+    if [[ ! -f "/etc/environment.d/10-vulkan-hybrid.conf" ]]; then
+        log_warn "System-wide GPU isolation missing (/etc/environment.d/10-vulkan-hybrid.conf). Run 'sudo ./install.sh --system' to apply."
+    fi
 }
 
 optimize_services() {
@@ -275,7 +288,101 @@ optimize_services() {
     fi
 }
 
+deploy_system() {
+    log_info "Deploying system-level GPU isolation and audio conflict fixes..."
+
+    if [[ "$EUID" -ne 0 ]]; then
+        log_err "System configuration requires root privileges. Please re-run with: sudo $0 --system"
+        return 1
+    fi
+
+    # 1. System-wide Vulkan and GPU environment isolation
+    local env_dir="/etc/environment.d"
+    local env_target="$env_dir/10-vulkan-hybrid.conf"
+    mkdir -p "$env_dir"
+    cp "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$env_target"
+    chmod 644 "$env_target"
+    log_pass "Deployed system-wide Vulkan isolation environment: $env_target"
+
+    # 2. Prevent GDM greeter and system users from starting PipeWire / WirePlumber
+    local systemd_user_dir="/etc/systemd/user"
+    local dropin_src="$SCRIPT_DIR/system/systemd/user/10-disable-greeter.conf"
+    local -a service_dropin_dirs=(
+        "$systemd_user_dir/pipewire.socket.d"
+        "$systemd_user_dir/pipewire.service.d"
+        "$systemd_user_dir/pipewire-pulse.socket.d"
+        "$systemd_user_dir/pipewire-pulse.service.d"
+        "$systemd_user_dir/wireplumber.service.d"
+    )
+
+    for dir in "${service_dropin_dirs[@]}"; do
+        mkdir -p "$dir"
+        cp "$dropin_src" "$dir/10-disable-greeter.conf"
+        chmod 644 "$dir/10-disable-greeter.conf"
+    done
+    log_pass "Deployed systemd user drop-ins to prevent GDM greeter audio contention"
+
+    # 3. Optimize BlueZ Bluetooth policy for rapid reconnection
+    if [[ -f "/etc/bluetooth/main.conf" ]]; then
+        python3 -c '
+import re
+path = "/etc/bluetooth/main.conf"
+with open(path) as f:
+    text = f.read()
+
+settings = {
+    "AutoEnable": "true",
+    "FastConnectable": "true",
+    "ReconnectAttempts": "7",
+    "ReconnectIntervals": "1, 2, 4, 8, 16, 32, 64"
+}
+
+match = re.search(r"(\[Policy\]\n)(.*?)(\n\[|\Z)", text, re.DOTALL)
+if match:
+    header, body, trailer = match.group(1), match.group(2), match.group(3)
+    lines = body.splitlines()
+    new_lines = []
+    handled = set()
+    for line in lines:
+        stripped = line.strip()
+        found_k = None
+        for k in settings:
+            if stripped.startswith(k) or stripped.startswith("#" + k) or stripped.startswith("# " + k):
+                found_k = k
+                break
+        if found_k:
+            if found_k not in handled:
+                new_lines.append(f"{found_k} = {settings[found_k]}")
+                handled.add(found_k)
+        else:
+            new_lines.append(line)
+    for k, v in settings.items():
+        if k not in handled:
+            new_lines.append(f"{k} = {v}")
+    new_text = text[:match.start()] + header + "\n".join(new_lines) + trailer + text[match.end():]
+    with open(path, "w") as f:
+        f.write(new_text)
+'
+        log_pass "Configured /etc/bluetooth/main.conf Policy parameters"
+    fi
+
+    # 4. Remove obsolete GDM user WirePlumber configuration if present
+    if [[ -f "/var/lib/gdm/.config/wireplumber/wireplumber.conf.d/disable-bluetooth.conf" ]]; then
+        rm -f "/var/lib/gdm/.config/wireplumber/wireplumber.conf.d/disable-bluetooth.conf"
+        log_pass "Removed obsolete GDM user WirePlumber configuration"
+    fi
+
+    # 5. Reload systemd daemon
+    systemctl daemon-reload
+    log_pass "Reloaded systemd daemon"
+}
+
 main() {
+    if [[ "$SYSTEM_INSTALL" -eq 1 ]]; then
+        deploy_system
+        exit 0
+    fi
+
     log_info "Starting kkhypr deployment script..."
 
     check_dependencies

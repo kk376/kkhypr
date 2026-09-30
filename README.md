@@ -92,12 +92,18 @@ kkhypr/
 │   ├── noctalia/
 │   │   ├── config.toml       # Noctalia Shell v5 layout and template config
 │   │   └── plugins/          # Custom Luau status bar plugins
+│   ├── wireplumber/
+│   │   └── wireplumber.conf.d/
+│   │       └── 50-bluez.conf # WirePlumber audio and Bluetooth policy
 │   └── systemd/
 │       └── user/             # Systemd user services and session targets
 ├── install.sh                # Automated, idempotent deployment script
 └── system/
-    └── environment.d/
-        └── 10-vulkan-hybrid.conf # Systemd user environment GPU rules
+    ├── environment.d/
+    │   └── 10-vulkan-hybrid.conf # System-wide GPU isolation rules
+    └── systemd/
+        └── user/
+            └── 10-disable-greeter.conf # GDM audio contention prevention drop-in
 ```
 
 ---
@@ -231,10 +237,26 @@ The script links:
 * `dotfiles/hypr/*` -> `~/.config/hypr/*`
 * `dotfiles/noctalia/config.toml` -> `~/.config/noctalia/config.toml`
 * `dotfiles/noctalia/plugins` -> `~/.config/noctalia/plugins`
+* `dotfiles/ghostty/*` -> `~/.config/ghostty/*`
+* `dotfiles/wireplumber/*` -> `~/.config/wireplumber/*`
 * `dotfiles/systemd/user/*` -> `~/.config/systemd/user/*`
 * `system/environment.d/10-vulkan-hybrid.conf` -> `~/.config/environment.d/10-vulkan-hybrid.conf`
 
 Any pre-existing non-symlink configuration is safely backed up with a timestamped suffix (`.backup.YYYYMMDD_HHMMSS`).
+
+### 5. Deploy System-Wide GPU Isolation and Audio Fixes
+
+To prevent GTK4 app cold-start stalls across all users and eliminate Bluetooth audio transport collisions with GDM:
+
+```bash
+make system-install
+```
+
+Or run the installer with `--system` directly:
+
+```bash
+sudo ./install.sh --system
+```
 
 ---
 
