@@ -66,7 +66,7 @@
     "vscode_vibrancy.opacity": 0.85,
     "vscode_vibrancy.preventFlash": true,
     "vscode_vibrancy.blurRadius": 30,
-    "workbench.colorTheme": "Catppuccin Mocha",
+    "workbench.colorTheme": "NoctaliaTheme",
     "catppuccin.accentColor": "mauve",
     "workbench.colorCustomizations": {
         "sideBar.background": "#181825d9",
