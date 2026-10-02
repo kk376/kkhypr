@@ -68,7 +68,7 @@ hl.monitor({
 -- 4. Default Programs
 --------------------------------------------------------------------------------
 local terminal    = "ghostty"
-local fileManager = "nautilus"
+local fileManager = "nautilus --new-window"
 local browser     = "google-chrome"
 local menu          = "noctalia msg panel-toggle launcher"
 local clipboard     = "noctalia msg panel-toggle clipboard"
@@ -102,6 +102,9 @@ hl.on("hyprland.start", function ()
 
     -- Enable caffeine by default (idle inhibitor)
     hl.exec_cmd("sh -c 'sleep 1 && noctalia msg caffeine-enable'")
+
+    -- File manager pre-warmed background service (eliminates cold-start latency)
+    hl.exec_cmd("nautilus --gapplication-service")
 end)
 
 --------------------------------------------------------------------------------
@@ -239,7 +242,7 @@ hl.layer_rule({
 -- Glassmorphism & opacity rules for editors (VSCode, VSCodium, Zed)
 hl.window_rule({
     name    = "code-opacity",
-    match   = { class = "^(code|Code|code-oss|VSCodium)$" },
+    match   = { class = "^(com\\.microsoft\\.VSCode|code|Code|code-oss|VSCodium|codium|com\\.vscodium\\.codium)$" },
     opacity = "0.85 0.85",
 })
 hl.window_rule({
