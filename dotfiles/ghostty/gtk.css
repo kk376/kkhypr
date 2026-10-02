@@ -86,7 +86,9 @@ tabbar tabbox > revealer > indicator {
 
 /* Inactive Tab: Noctalia Dark Surface (#18183c) with Lavender Text (#a9aefe) */
 tabbar tab,
-tabbar tabbox > tabboxchild tab {
+tabbar tab:hover,
+tabbar tabbox > tabboxchild tab,
+tabbar tabbox > tabboxchild tab:hover {
     background-color: #18183c;
     color: #a9aefe;
     border-radius: 6px;
@@ -95,20 +97,13 @@ tabbar tabbox > tabboxchild tab {
     font-weight: normal;
     border: none;
     box-shadow: none;
-    transition: background-color 150ms ease-in-out, color 150ms ease-in-out;
-}
-
-/* Hover Tab: Highlighted to Noctalia Elevated Surface (#2b2b6e) with White Text */
-tabbar tab:hover:not(:selected),
-tabbar tabbox > tabboxchild tab:hover:not(:selected) {
-    background-color: #2b2b6e;
-    color: #ffffff;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Active Tab: Noctalia Lavender (#a9aefe) with Dark Text (#070722) */
 tabbar tab:selected,
-tabbar tabbox > tabboxchild tab:selected {
+tabbar tab:selected:hover,
+tabbar tabbox > tabboxchild tab:selected,
+tabbar tabbox > tabboxchild tab:selected:hover {
     background-color: #a9aefe;
     color: #070722;
     font-weight: bold;
@@ -116,34 +111,22 @@ tabbar tabbox > tabboxchild tab:selected {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
 }
 
-/* Active Tab Hover: Highlighted to Noctalia Gold (#fff59b) */
-tabbar tab:selected:hover,
-tabbar tabbox > tabboxchild tab:selected:hover {
-    background-color: #fff59b;
-    color: #070722;
-}
-
 /* Labels inside tabs */
 tabbar tab:selected label,
-tabbar tab:selected title {
-    color: #070722;
-    font-weight: bold;
-}
-
+tabbar tab:selected title,
 tabbar tab:selected:hover label,
 tabbar tab:selected:hover title {
     color: #070722;
     font-weight: bold;
 }
 
+tabbar tab label,
+tabbar tab title,
 tabbar tab:not(:selected) label,
-tabbar tab:not(:selected) title {
+tabbar tab:not(:selected) title,
+tabbar tab:hover label,
+tabbar tab:hover title {
     color: #a9aefe;
-}
-
-tabbar tab:hover:not(:selected) label,
-tabbar tab:hover:not(:selected) title {
-    color: #ffffff;
 }
 
 /* Hide and collapse Tab Close Button */
