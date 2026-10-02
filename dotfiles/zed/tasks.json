@@ -1,0 +1,13 @@
+[
+  {
+    "label": "Run current file",
+    "command": "zed-run",
+    "args": ["$ZED_FILE"],
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "reveal": "always",
+    "hide": "always",
+    "show_summary": false,
+    "show_command": false
+  }
+]

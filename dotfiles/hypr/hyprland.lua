@@ -236,6 +236,18 @@ hl.layer_rule({
     ignore_alpha = 0.2,
 })
 
+-- Glassmorphism & opacity rules for editors (VSCode, VSCodium, Zed)
+hl.window_rule({
+    name    = "code-opacity",
+    match   = { class = "^(code|Code|code-oss|VSCodium)$" },
+    opacity = "0.85 0.85",
+})
+hl.window_rule({
+    name    = "zed-opacity",
+    match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
+    opacity = "0.85 0.85",
+})
+
 -- Floating utility rules
 hl.window_rule({
     name  = "pavucontrol-float",

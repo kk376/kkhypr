@@ -1,0 +1,101 @@
+{
+    "workbench.iconTheme": "vscode-icons",
+    "editor.mouseWheelZoom": true,
+    "python.defaultInterpreterPath": "/usr/bin/python3",
+    "python.autoSelectWorkspace": true,
+    "python.locator": "js",
+    "python-envs.globalSearchPaths": [
+        "/usr/bin",
+        "/usr/local/bin",
+        "$HOME/.local/bin"
+    ],
+    "python.venvFolders": [
+        "envs",
+        ".envs",
+        ".venv",
+        "env",
+        "venv"
+    ],
+    "python.analysis.autoSearchPaths": true,
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "editor.fontFamily": "'FiraCode Nerd Font', 'Fira Code', 'JetBrains Mono', monospace",
+    "editor.fontLigatures": true,
+    "editor.fontSize": 16,
+    "editor.lineHeight": 1.5,
+    "editor.wordWrap": "on",
+    "terminal.integrated.fontFamily": "FiraCode Nerd Font",
+    "terminal.integrated.fontSize": 15,
+    "terminal.integrated.fontLigatures.enabled": true,
+    "window.zoomLevel": 0.5,
+    "terminal.external.linuxExec": "$HOME/.local/bin/kitty",
+    "terminal.integrated.defaultProfile.linux": "fish",
+    "terminal.integrated.profiles.linux": {
+        "fish": {
+            "path": "/usr/bin/fish",
+            "icon": "terminal"
+        },
+        "zsh": {
+            "path": "/usr/bin/zsh",
+            "icon": "terminal"
+        },
+        "bash": {
+            "path": "/usr/bin/bash",
+            "icon": "terminal-bash"
+        }
+    },
+    "code-runner.runInTerminal": true,
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.saveFileBeforeRun": true,
+    "code-runner.saveAllFilesBeforeRun": false,
+    "code-runner.ignoreSelection": true,
+    "code-runner.executorMap": {
+        "python": "python3 -u",
+        "c": "cd $dir && gcc -Wall -O2 $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "cpp": "cd $dir && g++ -Wall -O2 -std=c++20 $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+        "rust": "cd $dir && cargo run 2>/dev/null || (rustc $fileName && $dir$fileNameWithoutExt)",
+        "javascript": "node",
+        "typescript": "ts-node",
+        "shellscript": "bash",
+        "go": "go run"
+    },
+    "files.autoSave": "afterDelay",
+    "window.autoDetectColorScheme": false,
+    "window.controlsStyle": "custom",
+    "vscode_vibrancy.theme": "Dark (Only Subbar)",
+    "vscode_vibrancy.opacity": 0.85,
+    "vscode_vibrancy.preventFlash": true,
+    "vscode_vibrancy.blurRadius": 30,
+    "workbench.colorTheme": "Catppuccin Mocha",
+    "catppuccin.accentColor": "mauve",
+    "workbench.colorCustomizations": {
+        "sideBar.background": "#181825d9",
+        "sideBarTitle.background": "#181825d9",
+        "activityBar.background": "#11111bd9",
+        "sideBarStickyScroll.background": "#181825d9",
+        "inlineChat.background": "#1e1e2ee6",
+        "editorWidget.background": "#181825e6",
+        "editorHoverWidget.background": "#181825e6",
+        "editorSuggestWidget.background": "#181825e6",
+        "notifications.background": "#181825e6",
+        "notificationCenterHeader.background": "#181825e6",
+        "menu.background": "#1e1e2ee6",
+        "quickInput.background": "#1e1e2ee6"
+    },
+    "workbench.editor.showTabs": "multiple",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.enablePreviewFromQuickOpen": false,
+    "workbench.editor.limit.enabled": false,
+    "emmet.triggerExpansionOnTab": true,
+    "emmet.showAbbreviationSuggestions": true,
+    "emmet.showExpandedAbbreviation": "always",
+    "emmet.extensionsPath": [
+        "/home/kk376/.config/VSCodium/User/emmet"
+    ],
+    "editor.snippetSuggestions": "top",
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "scm.compactFolders": false,
+    "explorer.compactFolders": false
+}
