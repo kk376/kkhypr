@@ -1,39 +1,57 @@
 /* Tab Bar: Seamless with terminal background, no grey bar */
 
-/* Force all tab bar containers to be completely transparent.
-   This eliminates any opaque bar or background strip behind the tabs. */
+/* Container Transparency */
+window.ghostty,
+window toolbarview,
+toolbarview,
+toolbarview > revealer,
+toolbarview > revealer.bottom-bar,
+toolbarview > revealer.bottom-bar.raised,
+toolbarview > revealer.bottom-bar.flat,
+toolbarview > .bottom-bar,
+toolbarview > .bottom-bar.raised,
+toolbarview > .bottom-bar.flat,
+revealer.bottom-bar,
+revealer.bottom-bar.raised,
+revealer.bottom-bar.flat,
+.bottom-bar,
+.bottom-bar.raised,
+.bottom-bar.flat,
+windowhandle,
 tabbar,
-tabbar .box,
-tabbar > box,
+tabbar revealer,
 tabbar box,
+tabbar .box,
 tabbar scrolledwindow,
 tabbar scrolledwindow > viewport,
 tabbar viewport,
 tabbar tabbox,
+tabbar tabboxchild,
 tabbar .start-action,
 tabbar .end-action,
-tabbar revealer,
-tabbar revealer > box,
-tabbar widget {
-    background: transparent !important;
-    background-color: transparent !important;
-    background-image: none !important;
-    border: none !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
+toolbar,
+.toolbar,
+actionbar,
+actionbar > revealer > box {
+    background: transparent;
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-color: transparent;
+    box-shadow: none;
+    outline: none;
 }
 
 tabbar {
-    min-height: 0px !important;
-    margin: 0px !important;
-    padding: 0px !important;
+    min-height: 0px;
+    margin: 0px;
+    padding: 0px;
 }
 
 tabbar tabbox {
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
-    min-height: 0px !important;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    min-height: 0px;
 }
 
 /* Remove scrolledwindow undershoot shadow indicators */
@@ -41,111 +59,110 @@ tabbar scrolledwindow undershoot.left,
 tabbar scrolledwindow undershoot.right,
 tabbar scrolledwindow undershoot.top,
 tabbar scrolledwindow undershoot.bottom {
-    background: none !important;
-    box-shadow: none !important;
+    background: none;
+    box-shadow: none;
 }
 
 /* Hide default separator line and drop indicator */
 tabbar separator,
 tabbar tabbox > separator {
-    opacity: 0 !important;
-    min-width: 0px !important;
-    min-height: 0px !important;
-    background: transparent !important;
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    background: transparent;
 }
 
 tabbar tabbox > revealer > indicator {
-    opacity: 0 !important;
-    min-width: 0px !important;
-    min-height: 0px !important;
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
 }
 
 /* Inactive Tab: Catppuccin Mocha Surface0 (#313244) with Subtext0 (#a6adc8) text */
 tabbar tab,
 tabbar tabbox > tabboxchild tab {
-    background-color: #313244 !important;
-    color: #a6adc8 !important;
-    border-radius: 6px !important;
-    margin: 2px 4px !important;
-    padding: 3px 12px !important;
-    font-weight: normal !important;
-    border: none !important;
-    box-shadow: none !important;
+    background-color: #313244;
+    color: #a6adc8;
+    border-radius: 6px;
+    margin: 3px 4px 5px 4px;
+    padding: 4px 14px;
+    font-weight: normal;
+    border: none;
+    box-shadow: none;
     transition: background-color 150ms ease-in-out, color 150ms ease-in-out;
 }
 
-tabbar tab:hover:not(:selected) {
-    background-color: #45475a !important; /* Surface1 */
-    color: #cdd6f4 !important; /* Text */
+/* Hover Tab: Highlighted to Catppuccin Surface1 / Text */
+tabbar tab:hover:not(:selected),
+tabbar tabbox > tabboxchild tab:hover:not(:selected) {
+    background-color: #45475a;
+    color: #cdd6f4;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Active Tab: Catppuccin Mocha Mauve (#cba6f7) with Crust (#11111b) text */
+/* Active Tab: Highlighted to Catppuccin Mauve with Crust text */
 tabbar tab:selected,
-tabbar tab:selected:hover,
 tabbar tabbox > tabboxchild tab:selected {
-    background-color: #cba6f7 !important;
-    color: #11111b !important;
-    font-weight: bold !important;
-    border: none !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+    background-color: #cba6f7;
+    color: #11111b;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
 }
 
-/* Labels inside active vs inactive tabs */
+/* Active Tab Hover: Highlighted to Catppuccin Lavender */
+tabbar tab:selected:hover,
+tabbar tabbox > tabboxchild tab:selected:hover {
+    background-color: #b4befe;
+    color: #11111b;
+}
+
+/* Labels inside tabs */
 tabbar tab:selected label,
 tabbar tab:selected title {
-    color: #11111b !important;
-    font-weight: bold !important;
+    color: #11111b;
+    font-weight: bold;
+}
+
+tabbar tab:selected:hover label,
+tabbar tab:selected:hover title {
+    color: #11111b;
+    font-weight: bold;
 }
 
 tabbar tab:not(:selected) label,
 tabbar tab:not(:selected) title {
-    color: #a6adc8 !important;
+    color: #a6adc8;
 }
 
-/* Hide and collapse Tab Close Button (Cross Icon) */
+tabbar tab:hover:not(:selected) label,
+tabbar tab:hover:not(:selected) title {
+    color: #cdd6f4;
+}
+
+/* Hide and collapse Tab Close Button */
 tabbar tab button.tab-close-button,
-tabbar tab button.tab-close-button:hover,
-tabbar tab button.tab-close-button:active,
-tabbar tab button.tab-close-button:focus,
 tabbar tab button.close,
 tabbar tab .close-button,
 tabbar tab button.image-button:not(.tab-indicator) {
-    opacity: 0 !important;
-    min-width: 0px !important;
-    min-height: 0px !important;
-    padding: 0px !important;
-    margin: 0px !important;
-    border: none !important;
-    background: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-    -gtk-icon-size: 0px !important;
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    background: none;
+    box-shadow: none;
+    outline: none;
 }
 
 tabbar tab button.tab-close-button image,
 tabbar tab button.close image,
 tabbar tab .close-button image,
 tabbar tab button.image-button:not(.tab-indicator) image {
-    opacity: 0 !important;
-    min-width: 0px !important;
-    min-height: 0px !important;
-    padding: 0px !important;
-    margin: 0px !important;
-    -gtk-icon-size: 0px !important;
-}
-
-/* Eliminate bottom toolbar or actionbar backgrounds */
-toolbar,
-.toolbar,
-.bottom-bar,
-actionbar,
-actionbar > revealer > box {
-    background: transparent !important;
-    background-color: transparent !important;
-    background-image: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    min-height: 0px !important;
-    padding: 0px !important;
-    margin: 0px !important;
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
 }
