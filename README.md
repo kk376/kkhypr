@@ -41,8 +41,8 @@ Desktop surfaces, menus, status indicators, and notification popups are driven b
 ### 4. Dynamic Workspace Compaction
 In standard tiling environments, closing windows can leave orphaned or fragmented desktop numbers. The bundled compactor daemon (`dotfiles/hypr/scripts/compact_workspaces.py`) listens to Hyprland socket events and dynamically collapses open workspaces into a contiguous sequence.
 
-### 5. Ghostty Terminal Dynamic Palette Synchronization
-`kkhypr` integrates Ghostty with Noctalia's built-in template engine. When changing desktop wallpapers or switching theme palettes, Noctalia automatically renders dynamic color schemes into `~/.config/ghostty/themes/noctalia`, sets `theme = noctalia` in `config.ghostty`, and signals running Ghostty instances via GTK D-Bus and `SIGUSR2` for instant live reload.
+### 5. Unified Catppuccin Mocha & Frosted Glassmorphism
+`kkhypr` sets a unified Catppuccin Mocha palette across terminal and editor environments (Ghostty, Neovim, VS Code, VSCodium, and Zed). With Ghostty configured at 0.67 background opacity and editors configured with Hyprland 0.85 opacity window rules and `ignore_opacity` blur passes, windows inherit a seamless hardware-accelerated frosted glass backdrop.
 
 ---
 
@@ -87,8 +87,21 @@ kkhypr/
 │   │       ├── compact_workspaces.py # Dynamic workspace compactor
 │   │       └── screenshot.sh         # 3-tier screenshot script (grim/slurp)
 │   ├── ghostty/
-│   │   ├── config.ghostty    # Ghostty terminal configuration
+│   │   ├── config.ghostty    # Ghostty terminal configuration (Catppuccin Mocha)
 │   │   └── gtk.css           # GTK4 tab bar and toolbar styling
+│   ├── nvim/                 # Neovim configuration (Catppuccin Mocha, transparent)
+│   │   ├── init.lua
+│   │   ├── lazy-lock.json
+│   │   └── lua/
+│   ├── vscode/               # VS Code configuration (Catppuccin Mocha + glassmorphism)
+│   │   └── settings.json
+│   ├── vscodium/             # VSCodium configuration (Catppuccin Mocha)
+│   │   └── settings.json
+│   ├── zed/                  # Zed Editor configuration (Catppuccin Mocha + opacity)
+│   │   ├── settings.json
+│   │   ├── keymap.json
+│   │   ├── tasks.json
+│   │   └── themes/
 │   ├── noctalia/
 │   │   ├── config.toml       # Noctalia Shell v5 layout and template config
 │   │   └── plugins/          # Custom Luau status bar plugins

@@ -1,0 +1,19 @@
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-alt-n": ["task::Spawn", { "task_name": "Run current file" }],
+      "f5": ["task::Spawn", { "task_name": "Run current file" }],
+      "ctrl-f5": ["task::Rerun", { "reevaluate_context": true }]
+    }
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      "ctrl-alt-n": ["task::Spawn", { "task_name": "Run current file" }],
+      "f5": ["task::Spawn", { "task_name": "Run current file" }],
+      "alt-shift-down": "editor::DuplicateLineDown",
+      "alt-shift-up": "editor::DuplicateLineUp"
+    }
+  }
+]
