@@ -1,10 +1,9 @@
 /* Tab Bar: Seamless with terminal background, no grey bar */
 
-/* Container Transparency */
+/* Match the tab bar container seamlessly to Ghostty terminal background */
 window.ghostty,
 window toolbarview,
 toolbarview,
-toolbarview > revealer,
 toolbarview > revealer.bottom-bar,
 toolbarview > revealer.bottom-bar.raised,
 toolbarview > revealer.bottom-bar.flat,
@@ -16,7 +15,15 @@ revealer.bottom-bar.raised,
 revealer.bottom-bar.flat,
 .bottom-bar,
 .bottom-bar.raised,
-.bottom-bar.flat,
+.bottom-bar.flat {
+    background-color: rgba(7, 7, 34, 0.67);
+    background-image: none;
+    border: none;
+    border-color: transparent;
+    box-shadow: none;
+    outline: none;
+}
+
 windowhandle,
 tabbar,
 tabbar revealer,
@@ -49,8 +56,9 @@ tabbar {
 }
 
 tabbar tabbox {
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding-top: 3px;
+    padding-bottom: 5px;
+    padding-left: 4px;
     min-height: 0px;
 }
 
@@ -65,26 +73,24 @@ tabbar scrolledwindow undershoot.bottom {
 
 /* Hide default separator line and drop indicator */
 tabbar separator,
-tabbar tabbox > separator {
-    opacity: 0;
-    min-width: 0px;
-    min-height: 0px;
-    background: transparent;
-}
-
+tabbar tabbox > separator,
+tabbar tab indicator,
+tabbar indicator,
 tabbar tabbox > revealer > indicator {
     opacity: 0;
     min-width: 0px;
     min-height: 0px;
+    background: transparent;
+    border: none;
 }
 
-/* Inactive Tab: Catppuccin Mocha Surface0 (#313244) with Subtext0 (#a6adc8) text */
+/* Inactive Tab: Noctalia Dark Surface (#18183c) with Lavender Text (#a9aefe) */
 tabbar tab,
 tabbar tabbox > tabboxchild tab {
-    background-color: #313244;
-    color: #a6adc8;
+    background-color: #18183c;
+    color: #a9aefe;
     border-radius: 6px;
-    margin: 3px 4px 5px 4px;
+    margin: 2px 4px;
     padding: 4px 14px;
     font-weight: normal;
     border: none;
@@ -92,52 +98,52 @@ tabbar tabbox > tabboxchild tab {
     transition: background-color 150ms ease-in-out, color 150ms ease-in-out;
 }
 
-/* Hover Tab: Highlighted to Catppuccin Surface1 / Text */
+/* Hover Tab: Highlighted to Noctalia Elevated Surface (#2b2b6e) with White Text */
 tabbar tab:hover:not(:selected),
 tabbar tabbox > tabboxchild tab:hover:not(:selected) {
-    background-color: #45475a;
-    color: #cdd6f4;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    background-color: #2b2b6e;
+    color: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
-/* Active Tab: Highlighted to Catppuccin Mauve with Crust text */
+/* Active Tab: Noctalia Lavender (#a9aefe) with Dark Text (#070722) */
 tabbar tab:selected,
 tabbar tabbox > tabboxchild tab:selected {
-    background-color: #cba6f7;
-    color: #11111b;
+    background-color: #a9aefe;
+    color: #070722;
     font-weight: bold;
     border: none;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
 }
 
-/* Active Tab Hover: Highlighted to Catppuccin Lavender */
+/* Active Tab Hover: Highlighted to Noctalia Gold (#fff59b) */
 tabbar tab:selected:hover,
 tabbar tabbox > tabboxchild tab:selected:hover {
-    background-color: #b4befe;
-    color: #11111b;
+    background-color: #fff59b;
+    color: #070722;
 }
 
 /* Labels inside tabs */
 tabbar tab:selected label,
 tabbar tab:selected title {
-    color: #11111b;
+    color: #070722;
     font-weight: bold;
 }
 
 tabbar tab:selected:hover label,
 tabbar tab:selected:hover title {
-    color: #11111b;
+    color: #070722;
     font-weight: bold;
 }
 
 tabbar tab:not(:selected) label,
 tabbar tab:not(:selected) title {
-    color: #a6adc8;
+    color: #a9aefe;
 }
 
 tabbar tab:hover:not(:selected) label,
 tabbar tab:hover:not(:selected) title {
-    color: #cdd6f4;
+    color: #ffffff;
 }
 
 /* Hide and collapse Tab Close Button */

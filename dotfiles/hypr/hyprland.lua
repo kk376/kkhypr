@@ -228,7 +228,7 @@ hl.layer_rule({
     name         = "noctalia-blur",
     match        = { namespace = "noctalia.*" },
     blur         = true,
-    ignore_alpha = 0.2,
+    ignore_alpha = 0.1,
     blur_popups  = true,
 })
 
@@ -236,7 +236,7 @@ hl.layer_rule({
     name         = "noctalia-bar-blur",
     match        = { namespace = "noctalia-bar-default" },
     blur         = true,
-    ignore_alpha = 0.2,
+    ignore_alpha = 0.1,
 })
 
 -- Glassmorphism & opacity rules for editors (VSCode, VSCodium, Zed)
