@@ -11,7 +11,7 @@ volume_change_sound = ""
 
 [backdrop]
 blur_intensity = 0.5
-enabled = false
+enabled = true
 tint_intensity = 0.30000001192092896
 
 [bar]
@@ -284,7 +284,7 @@ sunset = ""
 [lockscreen]
 allow_empty_password = false
 blur_intensity = 0.5
-blurred_desktop = false
+blurred_desktop = true
 enabled = true
 fingerprint = true
 lock_before_suspend = true
@@ -398,7 +398,7 @@ popup_borders = true
 popup_shadows = true
 screen_time_enabled = false
 settings_show_advanced = true
-settings_window_translucent = false
+settings_window_translucent = true
 setup_wizard_enabled = true
 shared_gl_context = true
 show_location = true
@@ -453,7 +453,7 @@ time_format = "{:%H:%M}"
     session_placement = "floating"
     session_position = "auto"
     shadow = true
-    transparency_mode = "solid"
+    transparency_mode = "glass"
     wallpaper_placement = "floating"
     wallpaper_position = "auto"
 
@@ -592,7 +592,7 @@ custom_palette = "noctalia"
 mode = "dark"
 pure_black_dark = false
 shell_mode = "follow"
-source = "builtin"
+source = "wallpaper"
 wallpaper_scheme = "m3-tonal-spot"
 
     [theme.templates]
