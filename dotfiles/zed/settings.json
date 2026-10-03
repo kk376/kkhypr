@@ -55,10 +55,10 @@
   "buffer_font_size": 16.0,
   "theme": {
     "mode": "system",
-    "light": "Noctalia",
-    "dark": "Noctalia"
+    "light": "Catppuccin Latte",
+    "dark": "Catppuccin Mocha"
   },
-  "background_opacity": 0.85,
+  "background_opacity": 0.0,
   "tab_bar": {
     "show": true
   },

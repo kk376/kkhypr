@@ -10,71 +10,92 @@ sound_volume = 0.5
 volume_change_sound = ""
 
 [backdrop]
-blur_intensity = 0.6
-enabled = true
-tint_intensity = 0.3
+blur_intensity = 0.5
+enabled = false
+tint_intensity = 0.30000001192092896
 
 [bar]
 order = [ "default" ]
 
     [bar.default]
     auto_hide = false
-    background_opacity = 0.80
+    background_opacity = 0.0
     border = "outline"
     border_width = 0.0
-    capsule = false
+    capsule = true
     capsule_fill = "surface_variant"
-    capsule_group = []
-    capsule_opacity = 1.0
+    capsule_opacity = 0.33
     capsule_padding = 6.0
-    capsule_thickness = 0.75999999046325684
-    center = [ "clock", "spacer_05cm", "notifications" ]
+    capsule_radius = 16
+    capsule_thickness = 0.85
+    center = [ "clock", "notifications" ]
     concave_edge_corners = false
     contact_shadow = false
     enabled = true
     end = [
         "emoji",
-        "spacer_1cm",
         "network_rx",
         "network_tx",
-        "spacer_05cm",
         "clipboard",
-        "spacer_05cm",
         "local/custom_bar:bt_battery",
-        "spacer_05cm",
         "network",
-        "spacer_025cm",
         "volume",
-        "spacer_025cm",
         "brightness",
-        "spacer_025cm",
         "local/custom_bar:laptop_battery",
-        "spacer_075cm",
         "session"
     ]
     font_scale = 1.0
     font_weight = 500
     hover_highlight = true
     layer = "top"
-    margin_edge = 0
-    margin_ends = 0
+    margin_edge = 4
+    margin_ends = 8
     margin_opposite_edge = 0
     padding = 7
     panel_overlap = 1
     position = "top"
-    radius = 12
-    radius_bottom_left = 12
-    radius_bottom_right = 12
-    radius_top_left = 12
-    radius_top_right = 12
+    radius = 16
+    radius_bottom_left = 16
+    radius_bottom_right = 16
+    radius_top_left = 16
+    radius_top_right = 16
     reserve_space = true
     scale = 1.0
-    shadow = true
+    shadow = false
     show_on_workspace_switch = true
     smart_auto_hide = false
-    start = [ "workspaces", "spacer_1cm", "tray", "spacer_05cm", "weather" ]
-    thickness = 34
+    start = [ "workspaces", "tray" ]
+    thickness = 36
     widget_spacing = 6
+
+    [[bar.default.capsule_group]]
+    fill = "#0a0e14"
+    members = [ "workspaces", "tray" ]
+    opacity = 0.33
+    radius = 16
+
+    [[bar.default.capsule_group]]
+    fill = "#0a0e14"
+    members = [ "clock", "notifications" ]
+    opacity = 0.33
+    radius = 16
+
+    [[bar.default.capsule_group]]
+    fill = "#0a0e14"
+    members = [
+        "emoji",
+        "network_rx",
+        "network_tx",
+        "clipboard",
+        "local/custom_bar:bt_battery",
+        "network",
+        "volume",
+        "brightness",
+        "local/custom_bar:laptop_battery",
+        "session"
+    ]
+    opacity = 0.33
+    radius = 16
 
         [bar.default.dead_zone]
 
@@ -287,7 +308,7 @@ temperature_day = 6500
 temperature_night = 4000
 
 [notification]
-background_opacity = 0.75
+background_opacity = 0.97000002861022949
 border = true
 collapse_on_dismiss = true
 enable_daemon = true
@@ -304,7 +325,7 @@ show_actions = true
 show_app_name = true
 
 [osd]
-background_opacity = 0.75
+background_opacity = 0.97000002861022949
 border = true
 enabled = true
 monitors = []
