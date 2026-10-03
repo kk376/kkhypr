@@ -264,12 +264,10 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk-dark.css" "$CONFIG_DIR/gtk-3.0/gtk-dark.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/noctalia.css" "$CONFIG_DIR/gtk-3.0/noctalia.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/settings.ini" "$CONFIG_DIR/gtk-3.0/settings.ini"
-    deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/assets" "$CONFIG_DIR/gtk-3.0/assets"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/gtk.css" "$CONFIG_DIR/gtk-4.0/gtk.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/gtk-dark.css" "$CONFIG_DIR/gtk-4.0/gtk-dark.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/noctalia.css" "$CONFIG_DIR/gtk-4.0/noctalia.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/settings.ini" "$CONFIG_DIR/gtk-4.0/settings.ini"
-    deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/assets" "$CONFIG_DIR/gtk-4.0/assets"
 
     # Systemd session target and environment drop-in
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"

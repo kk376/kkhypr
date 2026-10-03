@@ -250,6 +250,11 @@ hl.window_rule({
     match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
     opacity = "0.90 0.85",
 })
+hl.window_rule({
+    name    = "noctalia-settings-opacity",
+    match   = { class = "^(dev\\.noctalia\\.Noctalia)$" },
+    opacity = "0.92 0.88",
+})
 
 -- Floating utility rules
 hl.window_rule({
