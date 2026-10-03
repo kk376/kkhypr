@@ -64,24 +64,30 @@ Custom widgets are located in `dotfiles/noctalia/plugins/custom_bar/`:
 
 ---
 
-## 4. Ghostty Terminal and Dynamic Palette Synchronization
+## 4. Automated Noctalia Dynamic Theming Architecture
 
-The desktop uses [Ghostty](https://ghostty.org) as its primary GPU-accelerated terminal emulator.
+Color management across the desktop environment is fully automated by Noctalia Desktop Shell. Rather than manually editing theme files or maintaining static palette configurations for individual applications, Noctalia operates a built-in and community template processor.
 
-Noctalia provides a built-in template engine configured in `dotfiles/noctalia/config.toml`:
-```toml
-[theme.templates]
-builtin_ids = [ "ghostty" ]
-community_ids = []
-enable_builtin_templates = true
-enable_community_templates = true
-```
+### Dynamic Generation Pipeline
+When a palette (such as Catppuccin, Tokyo Night, or wallpaper-derived colors) is selected in Noctalia Settings or triggered via `noctalia msg templates-apply`, Noctalia renders dynamic theme definitions into target application paths:
 
-Whenever the desktop wallpaper or color scheme updates, running `noctalia msg templates-apply` or switching wallpapers triggers Noctalia to:
-1. Extract the active color palette derived from wallpaper contents.
-2. Render `/usr/share/noctalia/assets/templates/ghostty/ghostty` into `$XDG_CONFIG_HOME/ghostty/themes/noctalia`.
-3. Update `theme = noctalia` in `$XDG_CONFIG_HOME/ghostty/config.ghostty`.
-4. Signal running Ghostty processes via GTK D-Bus action `reload-config` and `SIGUSR2` to refresh terminal colors instantly.
+1. **Hyprland Compositor Borders**:
+   Renders `$XDG_CONFIG_HOME/hypr/noctalia.lua`. The native compositor configuration `dotfiles/hypr/hyprland.lua` invokes `require("noctalia").apply_theme()`, instantly applying active and inactive window borders, group titles, and accent colors without restarting Hyprland.
+
+2. **Ghostty Terminal**:
+   Renders `/usr/share/noctalia/assets/templates/ghostty/ghostty` into `$XDG_CONFIG_HOME/ghostty/themes/noctalia`. The primary terminal configuration `dotfiles/ghostty/config.ghostty` references `theme = noctalia`, and running instances reload colors on the fly via D-Bus notifications.
+
+3. **GTK 3 and GTK 4 Desktop Applications**:
+   Renders `$XDG_CONFIG_HOME/gtk-3.0/noctalia.css` and `$XDG_CONFIG_HOME/gtk-4.0/noctalia.css`. Both `dotfiles/gtk-3.0/gtk.css` and `dotfiles/gtk-4.0/gtk.css` import this file directly, providing dynamic `@window_bg_color`, `@accent_color`, and `@headerbar_bg_color` values to all GTK applications, including GNOME Clocks.
+
+4. **Zed Editor**:
+   Renders `$XDG_CONFIG_HOME/zed/themes/noctalia.json`, defining `Noctalia Dark` and `Noctalia Light`. `dotfiles/zed/settings.json` activates these themes directly, eliminating static color palettes.
+
+5. **VS Code and VSCodium**:
+   Updates `NoctaliaTheme-color-theme.json` inside the installed Noctalia Theme extension. With `workbench.colorTheme` set to `NoctaliaTheme`, editor syntax and UI accents automatically reflect the active desktop palette.
+
+6. **Neovim and Terminal Utilities**:
+   Generates `$XDG_CONFIG_HOME/nvim/lua/matugen.lua` for base16 Neovim theming, as well as template outputs for Kitty, Alacritty, Foot, Fuzzel, Rofi, Fastfetch, Bat, and Yazi.
 
 ---
 
