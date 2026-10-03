@@ -84,15 +84,22 @@ tabbar tabbox > revealer > indicator {
     border: none;
 }
 
-/* Inactive Tab: Catppuccin Mantle at 0.33 opacity with subtle border - petite sizing */
+/* Inactive Tab: Compact petite sizing with reduced horizontal width */
+tabbar tabboxchild {
+    max-width: 90px;
+    min-width: 0px;
+}
+
 tabbar tab,
 tabbar tabbox > tabboxchild tab {
-    background-color: rgba(24, 24, 37, 0.33);
+    background-color: rgba(7, 7, 34, 0.45);
     color: #a6adc8;
     border-radius: 5px;
     margin: 1px 2px;
-    padding: 2px 9px;
+    padding: 2px 5px;
     min-height: 22px;
+    max-width: 90px;
+    min-width: 0px;
     font-size: 11px;
     font-weight: normal;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -101,20 +108,22 @@ tabbar tabbox > tabboxchild tab {
 
 tabbar tab:hover,
 tabbar tabbox > tabboxchild tab:hover {
-    background-color: rgba(30, 30, 46, 0.50);
+    background-color: rgba(17, 17, 45, 0.60);
     color: #cdd6f4;
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Active Tab: Catppuccin Mauve at 0.33 opacity with accent border - petite sizing */
+/* Active Tab: Catppuccin Mauve with compact horizontal width */
 tabbar tab:selected,
 tabbar tabbox > tabboxchild tab:selected {
     background-color: rgba(203, 166, 247, 0.33);
     color: #ffffff;
     border-radius: 5px;
     margin: 1px 2px;
-    padding: 2px 9px;
+    padding: 2px 5px;
     min-height: 22px;
+    max-width: 90px;
+    min-width: 0px;
     font-size: 11px;
     font-weight: bold;
     border: 1px solid rgba(203, 166, 247, 0.65);
@@ -139,6 +148,8 @@ tabbar tab:selected:hover title {
     font-size: 11px;
     font-weight: bold;
     padding: 0px 1px;
+    max-width: 76px;
+    text-overflow: ellipsis;
 }
 
 tabbar tab label,
@@ -150,6 +161,8 @@ tabbar tab:hover title {
     color: #a6adc8;
     font-size: 11px;
     padding: 0px 1px;
+    max-width: 76px;
+    text-overflow: ellipsis;
 }
 
 /* Hide and collapse Tab Close Button */
