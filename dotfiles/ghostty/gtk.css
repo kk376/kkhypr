@@ -16,7 +16,7 @@ revealer.bottom-bar.flat,
 .bottom-bar,
 .bottom-bar.raised,
 .bottom-bar.flat {
-    background-color: rgba(7, 7, 34, 0.67);
+    background-color: transparent;
     background-image: none;
     border: none;
     border-color: transparent;
@@ -84,31 +84,43 @@ tabbar tabbox > revealer > indicator {
     border: none;
 }
 
-/* Inactive Tab: Noctalia Dark Surface (#18183c) with Lavender Text (#a9aefe) */
+/* Inactive Tab: Catppuccin Mantle at 0.33 opacity with subtle border */
 tabbar tab,
-tabbar tab:hover,
-tabbar tabbox > tabboxchild tab,
-tabbar tabbox > tabboxchild tab:hover {
-    background-color: #18183c;
-    color: #a9aefe;
+tabbar tabbox > tabboxchild tab {
+    background-color: rgba(24, 24, 37, 0.33);
+    color: #a6adc8;
     border-radius: 6px;
     margin: 2px 4px;
     padding: 4px 14px;
     font-weight: normal;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: none;
 }
 
-/* Active Tab: Noctalia Lavender (#a9aefe) with Dark Text (#070722) */
+tabbar tab:hover,
+tabbar tabbox > tabboxchild tab:hover {
+    background-color: rgba(30, 30, 46, 0.50);
+    color: #cdd6f4;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Active Tab: Catppuccin Mauve at 0.33 opacity with accent border */
 tabbar tab:selected,
-tabbar tab:selected:hover,
-tabbar tabbox > tabboxchild tab:selected,
-tabbar tabbox > tabboxchild tab:selected:hover {
-    background-color: #a9aefe;
-    color: #070722;
+tabbar tabbox > tabboxchild tab:selected {
+    background-color: rgba(203, 166, 247, 0.33);
+    color: #ffffff;
     font-weight: bold;
-    border: none;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(203, 166, 247, 0.65);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+tabbar tab:selected:hover,
+tabbar tabbox > tabboxchild tab:selected:hover {
+    background-color: rgba(203, 166, 247, 0.45);
+    color: #ffffff;
+    font-weight: bold;
+    border: 1px solid rgba(203, 166, 247, 0.85);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Labels inside tabs */
@@ -116,7 +128,7 @@ tabbar tab:selected label,
 tabbar tab:selected title,
 tabbar tab:selected:hover label,
 tabbar tab:selected:hover title {
-    color: #070722;
+    color: #ffffff;
     font-weight: bold;
 }
 
@@ -126,7 +138,7 @@ tabbar tab:not(:selected) label,
 tabbar tab:not(:selected) title,
 tabbar tab:hover label,
 tabbar tab:hover title {
-    color: #a9aefe;
+    color: #a6adc8;
 }
 
 /* Hide and collapse Tab Close Button */

@@ -58,7 +58,7 @@
     "light": "Catppuccin Latte",
     "dark": "Catppuccin Mocha"
   },
-  "background_opacity": 0.0,
+  "background_opacity": 0.33,
   "tab_bar": {
     "show": true
   },
