@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+import os
+import re
+import sys
+import shutil
+import subprocess
+from pathlib import Path
+
+CONFIG_DIR = Path.home() / ".config" / "ghostty"
+CONFIG_FILE = CONFIG_DIR / "config.ghostty"
+GTK_CSS_FILE = CONFIG_DIR / "gtk.css"
+CUSTOM_THEMES_DIR = CONFIG_DIR / "themes"
+SYSTEM_THEMES_DIR = Path("/usr/share/ghostty/themes")
+
+def get_custom_themes():
+    if not CUSTOM_THEMES_DIR.exists():
+        return []
+    return sorted([p.name for p in CUSTOM_THEMES_DIR.iterdir() if not p.name.startswith(".")])
+
+def get_current_theme():
+    if not CONFIG_FILE.exists():
+        return "default"
+    content = CONFIG_FILE.read_text(encoding="utf-8")
+    m = re.search(r"^[ \t]*theme[ \t]*=[ \t]*(.+)$", content, re.MULTILINE)
+    return m.group(1).strip() if m else "default"
+
+def get_current_opacity():
+    if not CONFIG_FILE.exists():
+        return 0.33
+    content = CONFIG_FILE.read_text(encoding="utf-8")
+    m = re.search(r"^[ \t]*background-opacity[ \t]*=[ \t]*([0-9.]+)", content, re.MULTILINE)
+    return float(m.group(1)) if m else 0.33
+
+def get_theme_colors(theme_name):
+    bg = None
+    fg = None
+    
+    # Check custom themes
+    custom_path = CUSTOM_THEMES_DIR / theme_name
+    if custom_path.exists():
+        text = custom_path.read_text(encoding="utf-8", errors="ignore")
+        m_bg = re.search(r"^[ \t]*background[ \t]*=[ \t]*([#0-9a-fA-F]+)", text, re.MULTILINE)
+        m_fg = re.search(r"^[ \t]*foreground[ \t]*=[ \t]*([#0-9a-fA-F]+)", text, re.MULTILINE)
+        if m_bg: bg = m_bg.group(1).strip()
+        if m_fg: fg = m_fg.group(1).strip()
+
+    # Check system themes
+    if not bg or not fg:
+        sys_path = SYSTEM_THEMES_DIR / theme_name
+        if sys_path.exists():
+            text = sys_path.read_text(encoding="utf-8", errors="ignore")
+            m_bg = re.search(r"^[ \t]*background[ \t]*=[ \t]*([#0-9a-fA-F]+)", text, re.MULTILINE)
+            m_fg = re.search(r"^[ \t]*foreground[ \t]*=[ \t]*([#0-9a-fA-F]+)", text, re.MULTILINE)
+            if m_bg: bg = m_bg.group(1).strip()
+            if m_fg: fg = m_fg.group(1).strip()
+
+    # Fallback to ghostty query
+    if not bg or not fg:
+        try:
+            res = subprocess.run(
+                ["ghostty", "+show-config", f"--theme={theme_name}"],
+                capture_output=True, text=True, check=True
+            )
+            m_bg = re.search(r"^background = ([#0-9a-fA-F]+)", res.stdout, re.MULTILINE)
+            m_fg = re.search(r"^foreground = ([#0-9a-fA-F]+)", res.stdout, re.MULTILINE)
+            if m_bg: bg = m_bg.group(1).strip()
+            if m_fg: fg = m_fg.group(1).strip()
+        except Exception:
+            pass
+
+    return bg or "#0a0e14", fg or "#cdd6f4"
+
+def hex_to_rgb(hex_code):
+    h = hex_code.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+def apply_theme(theme_name):
+    bg_hex, fg_hex = get_theme_colors(theme_name)
+    opacity = get_current_opacity()
+    r, g, b = hex_to_rgb(bg_hex)
+    rgba_str = f"rgba({r}, {g}, {b}, {opacity:.2f})"
+
+    # Update config.ghostty
+    if CONFIG_FILE.exists():
+        content = CONFIG_FILE.read_text(encoding="utf-8")
+        if re.search(r"^[ \t]*theme[ \t]*=", content, re.MULTILINE):
+            content = re.sub(r"^[ \t]*theme[ \t]*=.*$", f"theme = {theme_name}", content, flags=re.MULTILINE)
+        else:
+            content = f"theme = {theme_name}\n" + content
+        CONFIG_FILE.write_text(content, encoding="utf-8")
+
+    # Update gtk.css
+    if GTK_CSS_FILE.exists():
+        css = GTK_CSS_FILE.read_text(encoding="utf-8")
+        # Update bottom-bar background-color
+        css = re.sub(
+            r"(\.bottom-bar[^{]*\{\s*background-color:\s*)(rgba?\([^)]+\)|#[0-9a-fA-F]+)",
+            rf"\g<1>{rgba_str}",
+            css
+        )
+        css = re.sub(
+            r"(revealer\.bottom-bar[^{]*\{\s*background-color:\s*)(rgba?\([^)]+\)|#[0-9a-fA-F]+)",
+            rf"\g<1>{rgba_str}",
+            css
+        )
+        # Update tab selected text color
+        css = re.sub(
+            r"(tabbar tab:selected[^{]*\{[^}]*color:\s*)(#[0-9a-fA-F]+)",
+            rf"\g<1>{fg_hex}",
+            css
+        )
+        css = re.sub(
+            r"(tabbar tab:selected label,\s*tabbar tab:selected title[^{]*\{\s*color:\s*)(#[0-9a-fA-F]+)",
+            rf"\g<1>{fg_hex}",
+            css
+        )
+        GTK_CSS_FILE.write_text(css, encoding="utf-8")
+
+    # Trigger Ghostty reload
+    try:
+        subprocess.run([
+            "gdbus", "call", "--session",
+            "--dest", "com.mitchellh.ghostty",
+            "--object-path", "/com/mitchellh/ghostty",
+            "--method", "org.gtk.Actions.Activate",
+            "reload-config", "[]", "{}"
+        ], capture_output=True, check=False)
+    except Exception:
+        subprocess.run(["pkill", "-SIGUSR2", "ghostty"], check=False)
+
+    print(f"Theme switched to: {theme_name} (bg: {bg_hex}, opacity: {opacity})")
+
+def main():
+    args = sys.argv[1:]
+    custom_themes = get_custom_themes()
+
+    if args and args[0] in ("-l", "--list", "list"):
+        print("Custom Themes:")
+        for t in custom_themes:
+            print(f"  * {t}")
+        return
+
+    if args:
+        theme = args[0]
+        apply_theme(theme)
+        return
+
+    # No argument: if fzf is available and interactive, run fzf
+    if sys.stdin.isatty() and shutil.which("fzf"):
+        popular = ["kkhypr", "noctalia", "catppuccin", "TokyoNight", "Ayu Mirage", "Ultra Dark"]
+        all_choices = list(dict.fromkeys(custom_themes + popular))
+        fzf_input = "\n".join(all_choices)
+        res = subprocess.run(["fzf", "--prompt=Select Theme: "], input=fzf_input, text=True, capture_output=True)
+        choice = res.stdout.strip()
+        if choice:
+            apply_theme(choice)
+        return
+
+    current = get_current_theme()
+    print(f"Current theme: {current}")
+    print("Usage: ghostty-theme <theme_name>")
+    print("Available custom themes:")
+    for t in custom_themes:
+        print(f"  * {t}")
+
+if __name__ == "__main__":
+    main()
