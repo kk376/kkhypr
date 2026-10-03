@@ -163,7 +163,7 @@ hl.config({
         force_default_wallpaper  = 0,
         disable_hyprland_logo    = true,
         disable_splash_rendering = true,
-        vrr                      = 1,
+        vrr                      = 0,
         focus_on_activate        = true,
     },
 
@@ -196,6 +196,7 @@ hl.curve("linear",         { type = "bezier", points = { {0, 0},       {1, 1}   
 hl.curve("almostLinear",   { type = "bezier", points = { {0.5, 0.5},   {0.75, 1} } })
 hl.curve("quick",          { type = "bezier", points = { {0.15, 0},    {0.1, 1}  } })
 hl.curve("snappy",         { type = "bezier", points = { {0.16, 1},    {0.3, 1}  } })
+hl.curve("smoothOut",      { type = "bezier", points = { {0.25, 1},    {0.5, 1}  } })
 
 hl.animation({ leaf = "global",        enabled = true, speed = 10,   bezier = "default" })
 hl.animation({ leaf = "border",        enabled = true, speed = 5.39, bezier = "easeOutQuint" })
@@ -210,7 +211,7 @@ hl.animation({ leaf = "layersIn",      enabled = true, speed = 4,    bezier = "e
 hl.animation({ leaf = "layersOut",     enabled = true, speed = 1.5,  bezier = "linear",       style = "fade" })
 hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 1.79, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.39, bezier = "almostLinear" })
-hl.animation({ leaf = "workspaces",    enabled = true, speed = 2.5,  bezier = "snappy",       style = "slide" })
+hl.animation({ leaf = "workspaces",    enabled = true, speed = 3.5,  bezier = "smoothOut",    style = "slidefade 20%" })
 
 --------------------------------------------------------------------------------
 -- 8. Gestures
