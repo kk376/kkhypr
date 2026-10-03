@@ -248,7 +248,7 @@ hl.window_rule({
 hl.window_rule({
     name    = "zed-opacity",
     match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
-    opacity = "1.0 0.95",
+    opacity = "0.90 0.85",
 })
 
 -- Floating utility rules
@@ -360,3 +360,6 @@ hl.bind(mainMod .. " + SHIFT + Print",    hl.dsp.exec_cmd(screenshotScript .. " 
 hl.bind(mainMod .. " + SHIFT + Sys_Req",  hl.dsp.exec_cmd(screenshotScript .. " screen-save"))
 
 
+
+-- For Noctalia Color templates
+require("noctalia").apply_theme()
