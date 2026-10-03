@@ -215,6 +215,40 @@ deploy_link() {
     log_pass "Linked: $target_path -> $source_path"
 }
 
+deploy_hard_link() {
+    local source_path="$1"
+    local target_path="$2"
+    local target_parent
+    target_parent="$(dirname "$target_path")"
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        log_info "[DRY-RUN] Hardlink: $target_path -> $source_path"
+        return 0
+    fi
+
+    mkdir -p "$target_parent"
+
+    if [[ -L "$target_path" ]]; then
+        log_info "Replacing symlink with hardlink for inotify support: $target_path"
+        rm -f "$target_path"
+    elif [[ -e "$target_path" ]]; then
+        if [[ "$(stat -c %i "$target_path" 2>/dev/null)" == "$(stat -c %i "$source_path" 2>/dev/null)" ]]; then
+            log_pass "Up to date (hardlink): $target_path"
+            return 0
+        fi
+        if [[ "$FORCE" -eq 1 ]]; then
+            local backup_path="${target_path}.backup.${TIMESTAMP}"
+            log_warn "Moving existing file to backup: $backup_path"
+            mv "$target_path" "$backup_path"
+        else
+            rm -f "$target_path"
+        fi
+    fi
+
+    ln "$source_path" "$target_path"
+    log_pass "Hardlinked: $target_path -> $source_path"
+}
+
 deploy_configurations() {
     log_info "Deploying configuration symlinks..."
 
@@ -257,7 +291,7 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/zed/settings.json" "$CONFIG_DIR/zed/settings.json"
     deploy_link "$SCRIPT_DIR/dotfiles/zed/keymap.json" "$CONFIG_DIR/zed/keymap.json"
     deploy_link "$SCRIPT_DIR/dotfiles/zed/tasks.json" "$CONFIG_DIR/zed/tasks.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/themes/noctalia.json" "$CONFIG_DIR/zed/themes/noctalia.json"
+    deploy_hard_link "$SCRIPT_DIR/dotfiles/zed/themes/noctalia.json" "$CONFIG_DIR/zed/themes/noctalia.json"
 
     # GTK3 and GTK4 dynamic Noctalia theming for GNOME applications
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk.css" "$CONFIG_DIR/gtk-3.0/gtk.css"
