@@ -81,7 +81,7 @@ When a palette (such as Catppuccin, Tokyo Night, or wallpaper-derived colors) is
    Renders `$XDG_CONFIG_HOME/gtk-3.0/noctalia.css` and `$XDG_CONFIG_HOME/gtk-4.0/noctalia.css`. Both `dotfiles/gtk-3.0/gtk.css` and `dotfiles/gtk-4.0/gtk.css` import this file directly, providing dynamic `@window_bg_color`, `@accent_color`, and `@headerbar_bg_color` values to all GTK applications, including GNOME Clocks.
 
 4. **Zed Editor**:
-   Renders `$XDG_CONFIG_HOME/zed/themes/noctalia.json`, defining `Noctalia Dark` and `Noctalia Light`. `dotfiles/zed/settings.json` activates these themes directly, eliminating static color palettes.
+   Renders `$XDG_CONFIG_HOME/zed/themes/noctalia.json`, defining `Noctalia Dark` and `Noctalia Light`. Deployed via a filesystem hardlink to the repository dotfile so Linux inotify watchers on the themes directory fire immediately upon template generation, enabling instant live updates without requiring an editor restart. `dotfiles/zed/settings.json` activates these themes directly.
 
 5. **VS Code and VSCodium**:
    Updates `NoctaliaTheme-color-theme.json` inside the installed Noctalia Theme extension. With `workbench.colorTheme` set to `NoctaliaTheme`, editor syntax and UI accents automatically reflect the active desktop palette.
