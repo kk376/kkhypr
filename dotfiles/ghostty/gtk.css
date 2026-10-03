@@ -117,7 +117,7 @@ tabbar tabbox > tabboxchild tab:hover {
 tabbar tab:selected,
 tabbar tabbox > tabboxchild tab:selected {
     background-color: rgba(203, 166, 247, 0.33);
-    color: #ffffff;
+    color: #cdd6f4;
     border-radius: 5px;
     margin: 1px 2px;
     padding: 2px 5px;
@@ -133,7 +133,7 @@ tabbar tabbox > tabboxchild tab:selected {
 tabbar tab:selected:hover,
 tabbar tabbox > tabboxchild tab:selected:hover {
     background-color: rgba(203, 166, 247, 0.45);
-    color: #ffffff;
+    color: #cdd6f4;
     font-weight: bold;
     border: 1px solid rgba(203, 166, 247, 0.85);
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
@@ -144,7 +144,7 @@ tabbar tab:selected label,
 tabbar tab:selected title,
 tabbar tab:selected:hover label,
 tabbar tab:selected:hover title {
-    color: #ffffff;
+    color: #cdd6f4;
     font-size: 11px;
     font-weight: bold;
     padding: 0px 1px;
