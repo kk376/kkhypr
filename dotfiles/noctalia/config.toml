@@ -436,7 +436,7 @@ time_format = "{:%H:%M}"
     borders = true
     clipboard_placement = "floating"
     clipboard_position = "center"
-    control_center_placement = "attached"
+    control_center_placement = "floating"
     control_center_position = "auto"
     floating_layer = "overlay"
     floating_offset = 8
@@ -450,11 +450,11 @@ time_format = "{:%H:%M}"
     open_near_click_wallpaper = false
     polkit_placement = "floating"
     polkit_position = "center"
-    session_placement = "attached"
+    session_placement = "floating"
     session_position = "auto"
     shadow = true
     transparency_mode = "solid"
-    wallpaper_placement = "attached"
+    wallpaper_placement = "floating"
     wallpaper_position = "auto"
 
     [shell.privacy]
