@@ -1,178 +1,24 @@
-/* Catppuccin Mocha Libadwaita & GTK Named Colors */
-@define-color accent_color #cba6f7;
-@define-color accent_bg_color #cba6f7;
-@define-color accent_fg_color #11111b;
+@import url("noctalia.css");
 
-@define-color destructive_color #f38ba8;
-@define-color destructive_bg_color #f38ba8;
-@define-color destructive_fg_color #11111b;
-
-@define-color success_color #a6e3a1;
-@define-color success_bg_color #a6e3a1;
-@define-color success_fg_color #11111b;
-
-@define-color warning_color #f9e2af;
-@define-color warning_bg_color #f9e2af;
-@define-color warning_fg_color #11111b;
-
-@define-color error_color #f38ba8;
-@define-color error_bg_color #f38ba8;
-@define-color error_fg_color #11111b;
-
-@define-color window_bg_color #1e1e2e;
-@define-color window_fg_color #cdd6f4;
-
-@define-color view_bg_color #181825;
-@define-color view_fg_color #cdd6f4;
-
-@define-color headerbar_bg_color #181825;
-@define-color headerbar_fg_color #cdd6f4;
-@define-color headerbar_border_color rgba(255, 255, 255, 0.08);
-@define-color headerbar_backdrop_color #181825;
-@define-color headerbar_shade_color rgba(0, 0, 0, 0.36);
-
-@define-color card_bg_color #181825;
-@define-color card_fg_color #cdd6f4;
-@define-color card_shade_color rgba(0, 0, 0, 0.36);
-
-@define-color dialog_bg_color #1e1e2e;
-@define-color dialog_fg_color #cdd6f4;
-
-@define-color popover_bg_color #181825;
-@define-color popover_fg_color #cdd6f4;
-@define-color popover_shade_color rgba(0, 0, 0, 0.36);
-
-@define-color shade_color rgba(0, 0, 0, 0.36);
-@define-color scrollbar_outline_color rgba(0, 0, 0, 0.5);
-
-@define-color sidebar_bg_color #181825;
-@define-color sidebar_fg_color #cdd6f4;
-@define-color sidebar_backdrop_color #181825;
-@define-color sidebar_shade_color rgba(0, 0, 0, 0.36);
-
-@define-color secondary_sidebar_bg_color #11111b;
-@define-color secondary_sidebar_fg_color #cdd6f4;
-@define-color secondary_sidebar_backdrop_color #11111b;
-@define-color secondary_sidebar_shade_color rgba(0, 0, 0, 0.36);
-
-@media (prefers-color-scheme: dark) {
-  @define-color accent_color #cba6f7;
-  @define-color accent_bg_color #cba6f7;
-  @define-color accent_fg_color #11111b;
-  @define-color destructive_color #f38ba8;
-  @define-color destructive_bg_color #f38ba8;
-  @define-color destructive_fg_color #11111b;
-  @define-color success_color #a6e3a1;
-  @define-color success_bg_color #a6e3a1;
-  @define-color success_fg_color #11111b;
-  @define-color warning_color #f9e2af;
-  @define-color warning_bg_color #f9e2af;
-  @define-color warning_fg_color #11111b;
-  @define-color error_color #f38ba8;
-  @define-color error_bg_color #f38ba8;
-  @define-color error_fg_color #11111b;
-  @define-color window_bg_color #1e1e2e;
-  @define-color window_fg_color #cdd6f4;
-  @define-color view_bg_color #181825;
-  @define-color view_fg_color #cdd6f4;
-  @define-color headerbar_bg_color #181825;
-  @define-color headerbar_fg_color #cdd6f4;
-  @define-color headerbar_border_color rgba(255, 255, 255, 0.08);
-  @define-color headerbar_backdrop_color #181825;
-  @define-color headerbar_shade_color rgba(0, 0, 0, 0.36);
-  @define-color card_bg_color #181825;
-  @define-color card_fg_color #cdd6f4;
-  @define-color card_shade_color rgba(0, 0, 0, 0.36);
-  @define-color dialog_bg_color #1e1e2e;
-  @define-color dialog_fg_color #cdd6f4;
-  @define-color popover_bg_color #181825;
-  @define-color popover_fg_color #cdd6f4;
-  @define-color popover_shade_color rgba(0, 0, 0, 0.36);
-  @define-color shade_color rgba(0, 0, 0, 0.36);
-  @define-color scrollbar_outline_color rgba(0, 0, 0, 0.5);
-  @define-color sidebar_bg_color #181825;
-  @define-color sidebar_fg_color #cdd6f4;
-  @define-color sidebar_backdrop_color #181825;
-  @define-color sidebar_shade_color rgba(0, 0, 0, 0.36);
-  @define-color secondary_sidebar_bg_color #11111b;
-  @define-color secondary_sidebar_fg_color #cdd6f4;
-  @define-color secondary_sidebar_backdrop_color #11111b;
-  @define-color secondary_sidebar_shade_color rgba(0, 0, 0, 0.36);
-}
-
-:root {
-  --accent-color: #cba6f7;
-  --accent-bg-color: #cba6f7;
-  --accent-fg-color: #11111b;
-  --window-bg-color: #1e1e2e;
-  --window-fg-color: #cdd6f4;
-  --view-bg-color: #181825;
-  --view-fg-color: #cdd6f4;
-  --headerbar-bg-color: #181825;
-  --headerbar-fg-color: #cdd6f4;
-  --headerbar-border-color: rgba(255, 255, 255, 0.08);
-  --headerbar-backdrop-color: #181825;
-  --card-bg-color: #181825;
-  --card-fg-color: #cdd6f4;
-  --dialog-bg-color: #1e1e2e;
-  --dialog-fg-color: #cdd6f4;
-  --popover-bg-color: #181825;
-  --popover-fg-color: #cdd6f4;
-  --sidebar-bg-color: #181825;
-  --sidebar-fg-color: #cdd6f4;
-  --secondary-sidebar-bg-color: #11111b;
-  --secondary-sidebar-fg-color: #cdd6f4;
-  --blue-1: #89b4fa;
-  --blue-2: #89b4fa;
-  --blue-3: #89b4fa;
-  --blue-4: #74c7ec;
-  --blue-5: #74c7ec;
-  --orange-1: #fab387;
-  --orange-2: #fab387;
-  --orange-3: #fab387;
-  --orange-4: #fab387;
-  --orange-5: #fab387;
-  --yellow-1: #f9e2af;
-  --yellow-2: #f9e2af;
-  --yellow-3: #f9e2af;
-  --yellow-4: #f9e2af;
-  --yellow-5: #f9e2af;
-  --purple-1: #cba6f7;
-  --purple-2: #cba6f7;
-  --purple-3: #cba6f7;
-  --purple-4: #b4befe;
-  --purple-5: #b4befe;
-  --green-1: #a6e3a1;
-  --green-2: #a6e3a1;
-  --green-3: #a6e3a1;
-  --green-4: #a6e3a1;
-  --green-5: #a6e3a1;
-  --red-1: #f38ba8;
-  --red-2: #f38ba8;
-  --red-3: #f38ba8;
-  --red-4: #eba0ac;
-  --red-5: #eba0ac;
-}
-
-/* GNOME Clocks Catppuccin Mocha Styling */
+/* GNOME Clocks Dynamic Theming (Follows Noctalia Palette) */
 window.clocks,
 window.ClocksWindow,
 .clocks,
 window.background.csd {
-  background-color: #1e1e2e;
-  color: #cdd6f4;
+  background-color: @window_bg_color;
+  color: @window_fg_color;
 }
 
 window.clocks headerbar,
 headerbar.clocks-headerbar,
 .clocks headerbar {
-  background-color: #181825;
-  color: #cdd6f4;
+  background-color: @headerbar_bg_color;
+  color: @headerbar_fg_color;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .clocks .clock-location {
-  color: #cdd6f4;
+  color: @window_fg_color;
 }
 
 .clocks .clock-time,
@@ -185,7 +31,7 @@ headerbar.clocks-headerbar,
 .clocks .running-stopwatch .milliseconds-label,
 .running-stopwatch .seconds-label,
 .running-stopwatch .milliseconds-label {
-  color: #cba6f7;
+  color: @accent_color;
 }
 
 .clocks .stopped-stopwatch label,
@@ -196,28 +42,27 @@ headerbar.clocks-headerbar,
 .clocks .alarm-time,
 .clocks .timer-countdown,
 .clocks .clocks-timer-label {
-  color: #cdd6f4;
+  color: @window_fg_color;
 }
 
 .clocks button.suggested-action,
 .clocks button.suggested-action.pill {
-  background-color: #cba6f7;
-  color: #11111b;
+  background-color: @accent_bg_color;
+  color: @accent_fg_color;
 }
 
 .clocks button.suggested-action:hover,
 .clocks button.suggested-action.pill:hover {
-  background-color: #b4befe;
-  color: #11111b;
+  background-color: alpha(@accent_bg_color, 0.85);
+  color: @accent_fg_color;
 }
 
 .clocks viewswitcher button:checked,
 .clocks viewswitcher button.active,
 .clocks viewswitcherbar button:checked {
-  background-color: rgba(203, 166, 247, 0.22);
-  color: #cba6f7;
+  background-color: alpha(@accent_color, 0.22);
+  color: @accent_color;
 }
-
 
 @keyframes ripple {
   to {
@@ -8721,5 +8566,3 @@ FIXME this is really an API */
 @define-color popover_fg_color #eff1f5;
 @define-color shade_color rgba(239, 241, 245, 0.12);
 @define-color scrollbar_outline_color rgba(239, 241, 245, 0.12);
-
-@import url("noctalia.css");

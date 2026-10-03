@@ -586,18 +586,116 @@ swap_pct_activity_threshold = 20.0
 swap_pct_critical_threshold = 80.0
 
 [theme]
-builtin = "Noctalia"
-community_palette = "Oxocarbon"
+builtin = "Catppuccin"
+community_palette = "Tokyo Night Moon"
 custom_palette = "noctalia"
 mode = "dark"
 pure_black_dark = false
 shell_mode = "follow"
-source = "custom"
-wallpaper_scheme = "m3-content"
+source = "builtin"
+wallpaper_scheme = "m3-tonal-spot"
 
     [theme.templates]
-    builtin_ids = [ "ghostty" ]
-    community_ids = []
+    builtin_ids = [
+        "alacritty",
+        "btop",
+        "cava",
+        "emacs",
+        "foot",
+        "gtk3",
+        "gtk4",
+        "ghostty",
+        "helix",
+        "hyprland",
+        "kcolorscheme",
+        "kitty",
+        "labwc",
+        "mango",
+        "niri",
+        "qt",
+        "scroll",
+        "starship",
+        "sway",
+        "umbriel",
+        "wezterm"
+    ]
+    community_ids = [
+        "antigravity",
+        "claude-code",
+        "codex",
+        "opencode",
+        "pi-agent",
+        "feishin",
+        "pear-desktop",
+        "sidra",
+        "sone",
+        "sonora",
+        "spicetify",
+        "spotifast",
+        "supersonic",
+        "tauon",
+        "ytm-player",
+        "brave",
+        "brave-origin",
+        "pywalfox",
+        "pywalfox-beta4",
+        "qutebrowser",
+        "ungoogled-chromium",
+        "zen-browser",
+        "discord",
+        "halloy",
+        "karere",
+        "nchat",
+        "senpai",
+        "telegram",
+        "driftwm",
+        "jay",
+        "blender",
+        "darktable",
+        "gimp",
+        "inkscape",
+        "libreoffice",
+        "micro",
+        "musescore",
+        "neovim",
+        "obsidian",
+        "vscode",
+        "zed",
+        "archetype-pokemmo",
+        "heroiclauncher",
+        "prismlauncher",
+        "steam",
+        "fuzzel",
+        "rofi",
+        "velo",
+        "vicinae",
+        "walker",
+        "yeet",
+        "fastfetch",
+        "mailspring",
+        "obs",
+        "sioyek",
+        "siyuan",
+        "thunderbird",
+        "zathura",
+        "zellij",
+        "fcitx5",
+        "hyprtoolkit",
+        "papirus-icons",
+        "snappy-switcher",
+        "whitesur-icons",
+        "bat",
+        "fzf",
+        "glow",
+        "herdr",
+        "konsole",
+        "lazygit",
+        "rio",
+        "superfile",
+        "surgedm",
+        "tmux",
+        "yazi"
+    ]
     enable_builtin_templates = true
     enable_community_templates = true
 
