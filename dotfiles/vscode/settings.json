@@ -62,11 +62,7 @@
     "files.autoSave": "afterDelay",
     "window.autoDetectColorScheme": false,
     "window.controlsStyle": "custom",
-    "vscode_vibrancy.theme": "Dark (Only Subbar)",
-    "vscode_vibrancy.opacity": 0.40,
-    "vscode_vibrancy.preventFlash": true,
-    "vscode_vibrancy.blurRadius": 30,
-    "workbench.colorTheme": "Catppuccin Mocha",
+    "workbench.colorTheme": "NoctaliaTheme",
     "workbench.editor.showTabs": "multiple",
     "workbench.editor.enablePreview": false,
     "workbench.editor.enablePreviewFromQuickOpen": false,
@@ -92,9 +88,5 @@
     },
     "scm.compactFolders": false,
     "explorer.compactFolders": false,
-    "git.openRepositoryInParentFolders": "never",
-    "animations.Install-Method": "Apc Customize UI++",
-    "apc.imports": [
-        "file://${userHome}/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.9/dist/updateHandler.js"
-    ]
+    "git.openRepositoryInParentFolders": "never"
 }
