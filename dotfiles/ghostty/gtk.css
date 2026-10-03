@@ -56,9 +56,9 @@ tabbar {
 }
 
 tabbar tabbox {
-    padding-top: 3px;
-    padding-bottom: 5px;
-    padding-left: 4px;
+    padding-top: 1px;
+    padding-bottom: 2px;
+    padding-left: 3px;
     min-height: 0px;
 }
 
@@ -84,14 +84,16 @@ tabbar tabbox > revealer > indicator {
     border: none;
 }
 
-/* Inactive Tab: Catppuccin Mantle at 0.33 opacity with subtle border */
+/* Inactive Tab: Catppuccin Mantle at 0.33 opacity with subtle border - petite sizing */
 tabbar tab,
 tabbar tabbox > tabboxchild tab {
     background-color: rgba(24, 24, 37, 0.33);
     color: #a6adc8;
-    border-radius: 6px;
-    margin: 2px 4px;
-    padding: 4px 14px;
+    border-radius: 5px;
+    margin: 1px 2px;
+    padding: 2px 9px;
+    min-height: 22px;
+    font-size: 11px;
     font-weight: normal;
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: none;
@@ -104,14 +106,19 @@ tabbar tabbox > tabboxchild tab:hover {
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Active Tab: Catppuccin Mauve at 0.33 opacity with accent border */
+/* Active Tab: Catppuccin Mauve at 0.33 opacity with accent border - petite sizing */
 tabbar tab:selected,
 tabbar tabbox > tabboxchild tab:selected {
     background-color: rgba(203, 166, 247, 0.33);
     color: #ffffff;
+    border-radius: 5px;
+    margin: 1px 2px;
+    padding: 2px 9px;
+    min-height: 22px;
+    font-size: 11px;
     font-weight: bold;
     border: 1px solid rgba(203, 166, 247, 0.65);
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 tabbar tab:selected:hover,
@@ -120,7 +127,7 @@ tabbar tabbox > tabboxchild tab:selected:hover {
     color: #ffffff;
     font-weight: bold;
     border: 1px solid rgba(203, 166, 247, 0.85);
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Labels inside tabs */
@@ -129,7 +136,9 @@ tabbar tab:selected title,
 tabbar tab:selected:hover label,
 tabbar tab:selected:hover title {
     color: #ffffff;
+    font-size: 11px;
     font-weight: bold;
+    padding: 0px 1px;
 }
 
 tabbar tab label,
@@ -139,6 +148,8 @@ tabbar tab:not(:selected) title,
 tabbar tab:hover label,
 tabbar tab:hover title {
     color: #a6adc8;
+    font-size: 11px;
+    padding: 0px 1px;
 }
 
 /* Hide and collapse Tab Close Button */

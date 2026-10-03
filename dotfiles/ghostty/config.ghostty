@@ -1,6 +1,7 @@
 # --- Theme & Colors ---
 theme = noctalia
 
+
 # --- Typography & Font Ligatures ---
 font-family = Fira Code
 font-family = Symbols Nerd Font Mono
@@ -12,7 +13,7 @@ adjust-box-thickness = 1
 adjust-icon-height = 20%
 
 # --- Window Styling & Layout ---
-background-opacity = 0.67
+background-opacity = 0.33
 background-blur = true
 window-padding-x = 16
 window-padding-y = 8,2
