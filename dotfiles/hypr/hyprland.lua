@@ -185,8 +185,7 @@ hl.config({
     },
 
     render = {
-        new_render_scheduling = true,
-        direct_scanout        = 0,
+        direct_scanout = 0,
     },
 
     debug = {
@@ -212,6 +211,7 @@ hl.curve("snappy",         { type = "bezier", points = { {0.16, 1},    {0.3, 1} 
 hl.curve("smoothOut",      { type = "bezier", points = { {0.25, 1},    {0.5, 1}  } })
 hl.curve("easeOutCubic",   { type = "bezier", points = { {0.33, 1},    {0.68, 1} } })
 hl.curve("smoothSlide",    { type = "bezier", points = { {0.25, 0.1},  {0.25, 1.0} } })
+hl.curve("smoothSnappy",   { type = "bezier", points = { {0.2, 0.8},   {0.2, 1.0} } })
 
 hl.animation({ leaf = "global",        enabled = true, speed = 10,   bezier = "default" })
 hl.animation({ leaf = "border",        enabled = true, speed = 5.39, bezier = "easeOutQuint" })
@@ -226,7 +226,7 @@ hl.animation({ leaf = "layersIn",      enabled = true, speed = 4,    bezier = "e
 hl.animation({ leaf = "layersOut",     enabled = true, speed = 1.5,  bezier = "linear",       style = "fade" })
 hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 1.79, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.39, bezier = "almostLinear" })
-hl.animation({ leaf = "workspaces",    enabled = true, speed = 2.5,  bezier = "snappy",       style = "slide" })
+hl.animation({ leaf = "workspaces",    enabled = true, speed = 2.2,  bezier = "smoothSnappy", style = "slide" })
 
 --------------------------------------------------------------------------------
 -- 8. Gestures
