@@ -52,7 +52,7 @@ hl.config({
 -- Extra monitors fallback to preferred mode and auto position.
 hl.monitor({
     output   = "eDP-1",
-    mode     = "preferred",
+    mode     = "1920x1080@144.42",
     position = "0x0",
     scale    = 1.25,
 })
@@ -131,11 +131,11 @@ hl.config({
 
         blur = {
             enabled           = true,
-            size              = 8,
-            passes            = 3,
-            vibrancy          = 0.25,
+            size              = 6,
+            passes            = 2,
+            vibrancy          = 0.20,
             vibrancy_darkness = 0.05,
-            noise             = 0.02,
+            noise             = 0.0,
             contrast          = 0.95,
             brightness        = 0.90,
             ignore_opacity    = true,
@@ -178,6 +178,10 @@ hl.config({
             tap_to_click   = true,
             scroll_factor  = 0.8,
         },
+    },
+
+    cursor = {
+        no_hardware_cursors = false,
     },
 })
 
