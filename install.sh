@@ -239,7 +239,7 @@ deploy_configurations() {
     # WirePlumber audio and bluetooth policy
     deploy_link "$SCRIPT_DIR/dotfiles/wireplumber/wireplumber.conf.d/50-bluez.conf" "$CONFIG_DIR/wireplumber/wireplumber.conf.d/50-bluez.conf"
 
-    # Neovim (Noctalia + transparent background)
+    # Neovim (Catppuccin Mocha + transparent background)
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/init.lua" "$CONFIG_DIR/nvim/init.lua"
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/lazy-lock.json" "$CONFIG_DIR/nvim/lazy-lock.json"
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/lazy.lua" "$CONFIG_DIR/nvim/lua/config/lazy.lua"
@@ -248,16 +248,24 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/colorscheme.lua" "$CONFIG_DIR/nvim/lua/plugins/colorscheme.lua"
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/treesitter.lua" "$CONFIG_DIR/nvim/lua/plugins/treesitter.lua"
 
-    # VS Code & VSCodium (Noctalia + glassmorphism/blur)
+    # VS Code & VSCodium (Catppuccin Mocha + glassmorphism/blur)
     deploy_link "$SCRIPT_DIR/dotfiles/vscode/settings.json" "$CONFIG_DIR/Code/User/settings.json"
     deploy_link "$SCRIPT_DIR/dotfiles/vscodium/settings.json" "$CONFIG_DIR/VSCodium/User/settings.json"
 
-    # Zed Editor (Noctalia + background opacity & blur)
+    # Zed Editor (Catppuccin Mocha + background opacity & blur)
     deploy_link "$SCRIPT_DIR/dotfiles/zed/settings.json" "$CONFIG_DIR/zed/settings.json"
     deploy_link "$SCRIPT_DIR/dotfiles/zed/keymap.json" "$CONFIG_DIR/zed/keymap.json"
     deploy_link "$SCRIPT_DIR/dotfiles/zed/tasks.json" "$CONFIG_DIR/zed/tasks.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/themes/catppuccin.json" "$CONFIG_DIR/zed/themes/catppuccin.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/themes/noctalia.json" "$CONFIG_DIR/zed/themes/noctalia.json"
+
+    # GTK3 and GTK4 Catppuccin theming for GNOME applications
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk.css" "$CONFIG_DIR/gtk-3.0/gtk.css"
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk-dark.css" "$CONFIG_DIR/gtk-3.0/gtk-dark.css"
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/settings.ini" "$CONFIG_DIR/gtk-3.0/settings.ini"
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/assets" "$CONFIG_DIR/gtk-3.0/assets"
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/gtk.css" "$CONFIG_DIR/gtk-4.0/gtk.css"
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/gtk-dark.css" "$CONFIG_DIR/gtk-4.0/gtk-dark.css"
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/settings.ini" "$CONFIG_DIR/gtk-4.0/settings.ini"
+    deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/assets" "$CONFIG_DIR/gtk-4.0/assets"
 
     # Systemd session target and environment drop-in
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"

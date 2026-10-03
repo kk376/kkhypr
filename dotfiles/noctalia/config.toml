@@ -64,13 +64,13 @@ order = [ "default" ]
     shadow = false
     show_on_workspace_switch = true
     smart_auto_hide = false
-    start = [ "workspaces", "tray" ]
+    start = [ "workspaces", "tray", "weather" ]
     thickness = 36
     widget_spacing = 6
 
     [[bar.default.capsule_group]]
     fill = "#0a0e14"
-    members = [ "workspaces", "tray" ]
+    members = [ "workspaces", "tray", "weather" ]
     opacity = 0.33
     radius = 16
 
