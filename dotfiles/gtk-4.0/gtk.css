@@ -4,6 +4,24 @@
  */
 @import url("noctalia.css");
 
+/* High-contrast text selection for GTK applications and web browsers */
+.view:selected,
+.view text:selected,
+textview:selected,
+textview text:selected,
+textview text selection,
+textview text selection:focus,
+textview.view text selection,
+textview.view text selection:focus,
+.view text selection,
+.view text selection:focus,
+entry selection,
+entry selection:focus,
+selection {
+  background-color: @accent_bg_color;
+  color: @accent_fg_color;
+}
+
 /* GNOME Clocks Dynamic Theming (Follows Noctalia Palette) */
 window.clocks,
 window.ClocksWindow,
