@@ -163,7 +163,7 @@ hl.config({
         force_default_wallpaper  = 0,
         disable_hyprland_logo    = true,
         disable_splash_rendering = true,
-        vrr                      = 0,
+        vrr                      = 1,
         focus_on_activate        = true,
     },
 
