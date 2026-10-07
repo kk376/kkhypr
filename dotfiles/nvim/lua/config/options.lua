@@ -38,3 +38,24 @@ opt.splitbelow = true    -- Put new horizontal splits below current
 opt.wrap = true          -- Enable soft line wrapping
 opt.linebreak = true     -- Break lines at word boundaries rather than mid-word
 opt.breakindent = true   -- Maintain line indentation on wrapped lines
+
+-- Enforce transparent background so Neovim inherits Ghostty opacity and blur
+local function set_transparent_background()
+  local transparent_groups = {
+    "Normal",
+    "NormalNC",
+    "SignColumn",
+    "EndOfBuffer",
+    "FoldColumn",
+    "LineNr",
+    "CursorLineNr",
+  }
+  for _, group in ipairs(transparent_groups) do
+    vim.api.nvim_set_hl(0, group, { bg = "NONE", ctermbg = "NONE" })
+  end
+end
+
+vim.api.nvim_create_autocmd({ "ColorScheme", "VimEnter" }, {
+  pattern = "*",
+  callback = set_transparent_background,
+})

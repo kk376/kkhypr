@@ -26,7 +26,7 @@ selection {
 window.clocks,
 window.ClocksWindow,
 .clocks,
-window.background.csd {
+window.clocks.background.csd {
   background-color: @window_bg_color;
   color: @window_fg_color;
 }

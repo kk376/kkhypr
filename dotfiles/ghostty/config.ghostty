@@ -14,14 +14,13 @@ adjust-icon-height = 20%
 
 # --- Window Styling & Layout ---
 background-opacity = 0.75
-background-blur = true
 window-padding-x = 16
 window-padding-y = 8,2
 window-padding-balance = false
 window-decoration = auto
 window-theme = ghostty
 confirm-close-surface = false
-maximize = true
+maximize = false
 
 # --- Cursor Customization ---
 cursor-style = bar
