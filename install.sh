@@ -127,7 +127,6 @@ check_dependencies() {
 validate_configurations() {
     log_info "Validating configuration files..."
     local hypr_lua="$SCRIPT_DIR/dotfiles/hypr/hyprland.lua"
-    local hypr_conf="$SCRIPT_DIR/dotfiles/hypr/hyprland.conf"
     local noctalia_conf="$SCRIPT_DIR/dotfiles/noctalia/config.toml"
 
     if [[ -f "$hypr_lua" ]]; then
@@ -136,16 +135,6 @@ validate_configurations() {
         else
             log_err "Hyprland Lua config validation failed: $hypr_lua"
             hyprland --verify-config -c "$hypr_lua"
-            return 1
-        fi
-    fi
-
-    if [[ -f "$hypr_conf" ]]; then
-        if hyprland --verify-config -c "$hypr_conf" >/dev/null 2>&1; then
-            log_pass "Hyprland config validation passed: $hypr_conf"
-        else
-            log_err "Hyprland config validation failed: $hypr_conf"
-            hyprland --verify-config -c "$hypr_conf"
             return 1
         fi
     fi
@@ -254,7 +243,9 @@ deploy_configurations() {
 
     # Hyprland ecosystem
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprland.lua" "$CONFIG_DIR/hypr/hyprland.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprland.conf" "$CONFIG_DIR/hypr/hyprland.conf"
+    if [[ -L "$CONFIG_DIR/hypr/hyprland.conf" && ! -e "$CONFIG_DIR/hypr/hyprland.conf" ]]; then
+        rm -f "$CONFIG_DIR/hypr/hyprland.conf"
+    fi
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" "$CONFIG_DIR/hypr/hypridle.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprlock.conf" "$CONFIG_DIR/hypr/hyprlock.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprpaper.conf" "$CONFIG_DIR/hypr/hyprpaper.conf"
@@ -271,6 +262,9 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/gtk.css" "$CONFIG_DIR/ghostty/gtk.css"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/themes/noctalia" "$CONFIG_DIR/ghostty/themes/noctalia"
 
+    # btop system monitor (transparent background matching Ghostty)
+    deploy_link "$SCRIPT_DIR/dotfiles/btop/btop.conf" "$CONFIG_DIR/btop/btop.conf"
+
     # WirePlumber audio and bluetooth policy
     deploy_link "$SCRIPT_DIR/dotfiles/wireplumber/wireplumber.conf.d/50-bluez.conf" "$CONFIG_DIR/wireplumber/wireplumber.conf.d/50-bluez.conf"
 
@@ -282,6 +276,7 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/keymaps.lua" "$CONFIG_DIR/nvim/lua/config/keymaps.lua"
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/colorscheme.lua" "$CONFIG_DIR/nvim/lua/plugins/colorscheme.lua"
     deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/treesitter.lua" "$CONFIG_DIR/nvim/lua/plugins/treesitter.lua"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/base16.lua" "$CONFIG_DIR/nvim/lua/plugins/base16.lua"
 
     # VS Code & VSCodium (NoctaliaTheme + glassmorphism/blur)
     deploy_link "$SCRIPT_DIR/dotfiles/vscode/settings.json" "$CONFIG_DIR/Code/User/settings.json"

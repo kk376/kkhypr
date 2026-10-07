@@ -36,15 +36,11 @@ __GLX_VENDOR_LIBRARY_NAME=mesa
 
 ---
 
-## 2. Configuration Architecture: Native Lua vs Legacy
+## 2. Configuration Architecture: Native Lua Engine
 
 Hyprland 0.56 introduces native Lua configuration support, providing full programmatic flexibility, structured types, loops, and conditional execution.
 
-`kkhypr` maintains two configuration definitions:
-1. `dotfiles/hypr/hyprland.lua`: The primary, modern Lua configuration. Utilizes `hl.config()`, `hl.bind()`, `hl.monitor()`, `hl.animation()`, and `hl.layer_rule()` for clean, type-safe compositor definition.
-2. `dotfiles/hypr/hyprland.conf`: The verified legacy fallback configuration, guaranteeing 100% feature parity and backward compatibility across standard Hyprland releases.
-
-Both files are continuously validated during continuous integration and pre-deployment checks via `hyprland --verify-config`.
+`kkhypr` leverages `dotfiles/hypr/hyprland.lua` as its single, modular master configuration. Utilizes `hl.config()`, `hl.bind()`, `hl.monitor()`, `hl.animation()`, and `hl.layer_rule()` for clean, type-safe compositor definition. The configuration is validated continuously during continuous integration and pre-deployment checks via `hyprland --verify-config`.
 
 ---
 

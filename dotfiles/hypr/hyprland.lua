@@ -105,6 +105,9 @@ hl.on("hyprland.start", function ()
 
     -- File manager pre-warmed background service (eliminates cold-start latency)
     hl.exec_cmd("nautilus --gapplication-service")
+
+    -- Disable GTK widget animations to eliminate tab and revealer resize flicker
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface enable-animations false")
 end)
 
 --------------------------------------------------------------------------------
@@ -255,16 +258,21 @@ hl.layer_rule({
     ignore_alpha = 0.1,
 })
 
--- Glassmorphism & opacity rules for editors (VSCode, VSCodium, Zed)
+-- Glassmorphism & opacity rules for editors (VSCode, VSCodium, Zed, Neovide)
 hl.window_rule({
     name    = "code-opacity",
     match   = { class = "^(com\\.microsoft\\.VSCode|code|Code|code-oss|VSCodium|codium|com\\.vscodium\\.codium)$" },
-    opacity = "0.90 0.85",
+    opacity = "0.75 0.75",
 })
 hl.window_rule({
     name    = "zed-opacity",
     match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
-    opacity = "0.90 0.85",
+    opacity = "0.75 0.75",
+})
+hl.window_rule({
+    name    = "neovide-opacity",
+    match   = { class = "^(neovide)$" },
+    opacity = "0.75 0.75",
 })
 hl.window_rule({
     name    = "noctalia-settings-opacity",

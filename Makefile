@@ -10,8 +10,6 @@ lint:
 	shellcheck install.sh
 	@echo "==> Verifying Hyprland 0.56 native Lua configuration..."
 	hyprland --verify-config -c dotfiles/hypr/hyprland.lua
-	@echo "==> Verifying Hyprland 0.56 legacy configuration..."
-	hyprland --verify-config -c dotfiles/hypr/hyprland.conf
 	@echo "==> Validating Noctalia shell configuration..."
 	noctalia config validate dotfiles/noctalia/config.toml
 	@echo "==> All syntax and configuration checks passed."
@@ -38,7 +36,7 @@ optimize-services:
 status:
 	@echo "==> Configuration symlink status:"
 	@ls -la ~/.config/hypr/hyprland.lua 2>/dev/null || echo "hyprland.lua: not linked"
-	@ls -la ~/.config/hypr/hyprland.conf 2>/dev/null || echo "hyprland.conf: not linked"
+	@ls -la ~/.config/btop/btop.conf 2>/dev/null || echo "btop.conf: not linked"
 	@ls -la ~/.config/noctalia/config.toml 2>/dev/null || echo "noctalia config.toml: not linked"
 	@ls -la ~/.config/ghostty/config.ghostty 2>/dev/null || echo "ghostty config.ghostty: not linked"
 	@ls -la ~/.config/ghostty/gtk.css 2>/dev/null || echo "ghostty gtk.css: not linked"
