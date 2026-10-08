@@ -85,3 +85,65 @@ headerbar.clocks-headerbar,
   background-color: alpha(@accent_color, 0.22);
   color: @accent_color;
 }
+
+/* GNOME Calculator Dynamic Theming (Follows Noctalia Palette) */
+window.MathWindow,
+.MathWindow,
+window.MathWindow.background {
+  background-color: @window_bg_color;
+  color: @window_fg_color;
+}
+
+.MathWindow headerbar {
+  background-color: @headerbar_bg_color;
+  color: @headerbar_fg_color;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.MathWindow .card,
+.MathWindow .display-container {
+  background-color: @card_bg_color;
+  color: @window_fg_color;
+  border-radius: 12px;
+}
+
+.MathWindow .math-display {
+  color: @window_fg_color;
+}
+
+/* Nautilus File Manager Dynamic Theming */
+window.nautilus-window,
+.nautilus-window,
+window.nautilus-window.background {
+  background-color: @window_bg_color;
+  color: @window_fg_color;
+}
+
+.nautilus-window headerbar {
+  background-color: @headerbar_bg_color;
+  color: @headerbar_fg_color;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nautilus-window .sidebar,
+.nautilus-window placessidebar {
+  background-color: @sidebar_bg_color;
+  color: @sidebar_fg_color;
+}
+
+.nautilus-window .view {
+  background-color: @view_bg_color;
+  color: @view_fg_color;
+}
+
+/* General Libadwaita / GTK4 Surface Unification */
+navigation-sidebar,
+.navigation-sidebar {
+  background-color: @sidebar_bg_color;
+  color: @sidebar_fg_color;
+}
+
+.card:not(.background) {
+  background-color: @card_bg_color;
+  color: @card_fg_color;
+}

@@ -36,6 +36,16 @@ hl.env("XCURSOR_SIZE", "28")
 hl.env("HYPRCURSOR_SIZE", "28")
 hl.env("GDK_SCALE", "1")
 hl.env("QT_SCALE_FACTOR", "1")
+hl.env("ADW_DISABLE_PORTAL", "1")
+
+-- GTK3/GTK4 real-time stylesheet live reload across wallpaper changes
+local existing_preload = os.getenv("LD_PRELOAD")
+local live_reload_so   = os.getenv("HOME") .. "/.local/lib/libgtk-live-reload.so"
+if existing_preload and #existing_preload > 0 and not string.find(existing_preload, "libgtk-live-reload.so") then
+    hl.env("LD_PRELOAD", live_reload_so .. ":" .. existing_preload)
+else
+    hl.env("LD_PRELOAD", live_reload_so)
+end
 
 -- XWayland fractional scale fix: prevent compositor upscaling, let toolkits handle DPI.
 hl.config({
@@ -81,8 +91,8 @@ local code          = "code"
 --------------------------------------------------------------------------------
 hl.on("hyprland.start", function ()
     -- Synchronize environment to D-Bus and systemd user services
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME")
-    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME")
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME ADW_DISABLE_PORTAL LD_PRELOAD")
+    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME ADW_DISABLE_PORTAL LD_PRELOAD")
     hl.exec_cmd("systemctl --user start hyprland-session.target")
 
     -- Authentication agent
@@ -94,9 +104,6 @@ hl.on("hyprland.start", function ()
     -- Idle management daemon
     hl.exec_cmd("hypridle")
 
-    -- Wallpaper daemon
-    hl.exec_cmd("hyprpaper")
-
     -- Dynamic workspace compactor daemon
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/compact_workspaces.py")
 
@@ -105,9 +112,6 @@ hl.on("hyprland.start", function ()
 
     -- File manager pre-warmed background service (eliminates cold-start latency)
     hl.exec_cmd("nautilus --gapplication-service")
-
-    -- Disable GTK widget animations to eliminate tab and revealer resize flicker
-    hl.exec_cmd("gsettings set org.gnome.desktop.interface enable-animations false")
 end)
 
 --------------------------------------------------------------------------------

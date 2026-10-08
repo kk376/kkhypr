@@ -200,7 +200,7 @@ battery_percentage_changed = []
 battery_plugged = []
 bluetooth_disabled = []
 bluetooth_enabled = []
-colors_changed = []
+colors_changed = [ "bash /home/kk376/.config/noctalia/scripts/sync-gtk-theme.sh" ]
 logging_out = []
 power_profile_changed = []
 rebooting = []
@@ -209,7 +209,7 @@ session_unlocked = []
 shutting_down = []
 started = [ "noctalia msg caffeine-enable" ]
 theme_mode_changed = []
-wallpaper_changed = []
+wallpaper_changed = [ "bash /home/kk376/.config/noctalia/scripts/sync-gtk-theme.sh" ]
 wifi_disabled = []
 wifi_enabled = []
 
@@ -635,8 +635,6 @@ wallpaper_scheme = "m3-tonal-spot"
         "supersonic",
         "tauon",
         "ytm-player",
-        "brave",
-        "brave-origin",
         "pywalfox",
         "pywalfox-beta4",
         "qutebrowser",

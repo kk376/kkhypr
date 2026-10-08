@@ -298,9 +298,27 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/noctalia.css" "$CONFIG_DIR/gtk-4.0/noctalia.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/settings.ini" "$CONFIG_DIR/gtk-4.0/settings.ini"
 
+    # Noctalia hooks and GTK real-time hot-reload deployment
+    mkdir -p "$CONFIG_DIR/noctalia/scripts" "$HOME/.local/lib"
+    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh" "$CONFIG_DIR/noctalia/scripts/sync-gtk-theme.sh"
+    chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh"
+
+    # Build and install GTK real-time stylesheet hot-reload shim
+    if command -v gcc >/dev/null 2>&1; then
+        local cflags_libs
+        cflags_libs=$(pkg-config --cflags --libs gio-2.0 glib-2.0 2>/dev/null || true)
+        # shellcheck disable=SC2086
+        gcc -shared -fPIC -O2 -Wall -Wextra "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.c" -o "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" -ldl $cflags_libs 2>/dev/null || true
+    fi
+    if [[ -f "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" ]]; then
+        install -m 755 "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" "$HOME/.local/lib/libgtk-live-reload.so"
+        log_pass "Installed GTK live stylesheet reload shim ($HOME/.local/lib/libgtk-live-reload.so)"
+    fi
+
     # Systemd session target and environment drop-in
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"
     deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"
+    deploy_link "$SCRIPT_DIR/system/environment.d/20-gtk-theme.conf" "$CONFIG_DIR/environment.d/20-gtk-theme.conf"
 
     if [[ ! -f "/etc/environment.d/10-vulkan-hybrid.conf" ]]; then
         log_warn "System-wide GPU isolation missing (/etc/environment.d/10-vulkan-hybrid.conf). Run 'sudo ./install.sh --system' to apply."
@@ -365,6 +383,10 @@ deploy_system() {
     cp "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$env_target"
     chmod 644 "$env_target"
     log_pass "Deployed system-wide Vulkan isolation environment: $env_target"
+
+    cp "$SCRIPT_DIR/system/environment.d/20-gtk-theme.conf" "$env_dir/20-gtk-theme.conf"
+    chmod 644 "$env_dir/20-gtk-theme.conf"
+    log_pass "Deployed system-wide GTK theme environment: $env_dir/20-gtk-theme.conf"
 
     # 2. Prevent GDM greeter and system users from starting PipeWire / WirePlumber
     local systemd_user_dir="/etc/systemd/user"
