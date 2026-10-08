@@ -38,7 +38,7 @@ revealer.bottom-bar.flat,
 .bottom-bar,
 .bottom-bar.raised,
 .bottom-bar.flat {
-    background-color: rgba(16, 19, 28, 0.75);
+    background-color: rgba(16, 19, 28, 0.9);
     background-image: none;
     border: none;
     border-color: transparent;

@@ -257,17 +257,17 @@ hl.layer_rule({
 hl.window_rule({
     name    = "code-opacity",
     match   = { class = "^(com\\.microsoft\\.VSCode|code|Code|code-oss|VSCodium|codium|com\\.vscodium\\.codium)$" },
-    opacity = "0.75 0.75",
+    opacity = "0.90 0.90",
 })
 hl.window_rule({
     name    = "zed-opacity",
     match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
-    opacity = "0.75 0.75",
+    opacity = "0.90 0.90",
 })
 hl.window_rule({
     name    = "neovide-opacity",
     match   = { class = "^(neovide)$" },
-    opacity = "0.75 0.75",
+    opacity = "0.90 0.90",
 })
 hl.window_rule({
     name    = "noctalia-settings-opacity",
