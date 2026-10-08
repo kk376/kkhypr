@@ -123,10 +123,20 @@ hl.config({
     decoration = {
         rounding         = 8,
         active_opacity   = 1.0,
-        inactive_opacity = 1.0,
+        inactive_opacity = 0.95,
 
         blur = {
-            enabled = false,
+            enabled           = true,
+            size              = 6,
+            passes            = 2,
+            vibrancy          = 0.20,
+            vibrancy_darkness = 0.05,
+            noise             = 0.0,
+            contrast          = 0.95,
+            brightness        = 0.90,
+            ignore_opacity    = true,
+            new_optimizations = true,
+            popups            = true,
         },
 
         shadow = {
@@ -228,6 +238,42 @@ hl.gesture({
 --------------------------------------------------------------------------------
 -- 9. Noctalia Layer & Window Rules
 --------------------------------------------------------------------------------
+hl.layer_rule({
+    name         = "noctalia-blur",
+    match        = { namespace = "noctalia.*" },
+    blur         = true,
+    ignore_alpha = 0.1,
+    blur_popups  = true,
+})
+
+hl.layer_rule({
+    name         = "noctalia-bar-blur",
+    match        = { namespace = "noctalia-bar-default" },
+    blur         = true,
+    ignore_alpha = 0.1,
+})
+
+-- Glassmorphism & opacity rules for editors (VSCode, VSCodium, Zed, Neovide)
+hl.window_rule({
+    name    = "code-opacity",
+    match   = { class = "^(com\\.microsoft\\.VSCode|code|Code|code-oss|VSCodium|codium|com\\.vscodium\\.codium)$" },
+    opacity = "0.75 0.75",
+})
+hl.window_rule({
+    name    = "zed-opacity",
+    match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
+    opacity = "0.75 0.75",
+})
+hl.window_rule({
+    name    = "neovide-opacity",
+    match   = { class = "^(neovide)$" },
+    opacity = "0.75 0.75",
+})
+hl.window_rule({
+    name    = "noctalia-settings-opacity",
+    match   = { class = "^(dev\\.noctalia\\.Noctalia)$" },
+    opacity = "0.92 0.88",
+})
 
 -- Floating utility rules
 hl.window_rule({
