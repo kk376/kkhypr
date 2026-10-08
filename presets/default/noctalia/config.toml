@@ -802,7 +802,7 @@ tooltip = "Emoji Picker"
 type = "custom_button"
 
     [widget.emoji.actions]
-    left = "panel-toggle launcher /emo"
+    left = "exec ~/.config/noctalia/scripts/toggle-emoji.sh"
 
 [widget.clock]
 format = "{:%a %b %d  %H:%M:%S}"
