@@ -159,9 +159,11 @@ tabbar tabbox > tabboxchild tab:hover {
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Active Tab: Solid vibrant accent */
+/* Active Tab: Solid vibrant accent (no color change on hover) */
 tabbar tab:selected,
-tabbar tabbox > tabboxchild tab:selected {
+tabbar tab:selected:hover,
+tabbar tabbox > tabboxchild tab:selected,
+tabbar tabbox > tabboxchild tab:selected:hover {
     background-color: #a9aefe;
     color: #070722;
     border-radius: 5px;
@@ -173,15 +175,6 @@ tabbar tabbox > tabboxchild tab:selected {
     font-weight: bold;
     border: 1px solid #a9aefe;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-}
-
-tabbar tab:selected:hover,
-tabbar tabbox > tabboxchild tab:selected:hover {
-    background-color: #fff59b;
-    color: #070722;
-    font-weight: bold;
-    border: 1px solid #fff59b;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Labels inside tabs */
