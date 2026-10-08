@@ -185,6 +185,8 @@ hl.config({
 
     cursor = {
         no_hardware_cursors = false,
+        no_break_fs_vrr     = 2,
+        min_refresh_rate    = 60,
     },
 
     render = {
