@@ -73,16 +73,23 @@ When a palette (such as Catppuccin, Tokyo Night, or wallpaper-derived colors) is
 2. **Ghostty Terminal**:
    Renders `/usr/share/noctalia/assets/templates/ghostty/ghostty` into `$XDG_CONFIG_HOME/ghostty/themes/noctalia`. The primary terminal configuration `dotfiles/ghostty/config.ghostty` references `theme = noctalia`, and running instances reload colors on the fly via D-Bus notifications.
 
-3. **GTK 3 and GTK 4 Desktop Applications**:
-   Renders `$XDG_CONFIG_HOME/gtk-3.0/noctalia.css` and `$XDG_CONFIG_HOME/gtk-4.0/noctalia.css`. Both `dotfiles/gtk-3.0/gtk.css` and `dotfiles/gtk-4.0/gtk.css` import this file directly, providing dynamic `@window_bg_color`, `@accent_color`, and `@headerbar_bg_color` values to all GTK applications, including GNOME Clocks.
+3. **GTK 3, GTK 4, and Libadwaita Desktop Applications**:
+   Renders `$XDG_CONFIG_HOME/gtk-3.0/noctalia.css` and `$XDG_CONFIG_HOME/gtk-4.0/noctalia.css`. Both `dotfiles/gtk-3.0/gtk.css` and `dotfiles/gtk-4.0/gtk.css` import this file directly, providing dynamic `@window_bg_color`, `@accent_color`, and `@headerbar_bg_color` values to all GTK applications, including GNOME Clocks, GNOME Calculator, and Nautilus.
+   
+   To bypass the static stylesheet caching inherent to GTK4 and Libadwaita, `kkhypr` deploys `libgtk-live-reload.so`. This lightweight shim attaches a user stylesheet provider at priority 810 via `gtk_style_context_add_provider_for_display` and `gtk_style_context_add_provider_for_screen`. It monitors `gtk.css` and `noctalia.css` via inotify file and directory monitors and listens to `GtkSettings::notify::gtk-theme-name`. When palette changes occur, running GTK applications reload styles in under 50 milliseconds without restarting.
+   
+   Direct GSettings accent color synchronization is enabled for Libadwaita applications by exporting `ADW_DISABLE_PORTAL=1`.
 
-4. **Zed Editor**:
+4. **Web Browsers (Google Chrome and Brave Origin)**:
+   Chromium browsers operating under native GTK integration (`"system_theme": 1`) monitor D-Bus changes on `org.gnome.desktop.interface`. Noctalia triggers `sync-gtk-theme.sh` on `wallpaper_changed` and `colors_changed`, which computes the circular hue distance to the closest GNOME accent color (`blue`, `teal`, `green`, `yellow`, `orange`, `red`, `pink`, `purple`, `slate`) and sets `org.gnome.desktop.interface accent-color`. It also rapidly toggles `gtk-theme` to broadcast D-Bus change notifications, triggering live re-evaluation of frame and tab accents across running browser instances.
+
+5. **Zed Editor**:
    Renders `$XDG_CONFIG_HOME/zed/themes/noctalia.json`, defining `Noctalia Dark` and `Noctalia Light`. Deployed via a filesystem hardlink to the repository dotfile so Linux inotify watchers on the themes directory fire immediately upon template generation, enabling instant live updates without requiring an editor restart. `dotfiles/zed/settings.json` activates these themes directly.
 
-5. **VS Code and VSCodium**:
+6. **VS Code and VSCodium**:
    Updates `NoctaliaTheme-color-theme.json` inside the installed Noctalia Theme extension. With `workbench.colorTheme` set to `NoctaliaTheme`, editor syntax and UI accents automatically reflect the active desktop palette.
 
-6. **Neovim and Terminal Utilities**:
+7. **Neovim and Terminal Utilities**:
    Generates `$XDG_CONFIG_HOME/nvim/lua/matugen.lua` for base16 Neovim theming, as well as template outputs for Kitty, Alacritty, Foot, Fuzzel, Rofi, Fastfetch, Bat, and Yazi.
 
 ---
