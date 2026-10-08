@@ -334,9 +334,12 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/palettes/noctalia.json" "$CONFIG_DIR/noctalia/palettes/noctalia.json"
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/colors.json" "$CONFIG_DIR/noctalia/colors.json"
+    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/plugins" "$CONFIG_DIR/noctalia/plugins"
     mkdir -p "$CONFIG_DIR/noctalia/scripts"
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh" "$CONFIG_DIR/noctalia/scripts/sync-gtk-theme.sh"
     chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh"
+    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/toggle-emoji.sh" "$CONFIG_DIR/noctalia/scripts/toggle-emoji.sh"
+    chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/toggle-emoji.sh"
 
     # GTK3 and GTK4 dynamic Noctalia theming
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk.css" "$CONFIG_DIR/gtk-3.0/gtk.css"
