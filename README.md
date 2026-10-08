@@ -7,41 +7,49 @@
 [![Terminal](https://img.shields.io/badge/Terminal-Ghostty-orange.svg)](https://ghostty.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Reproducible, zero-freeze Wayland desktop configuration for Fedora 44+, Hyprland 0.56+, Noctalia Desktop Shell v5, Ghostty, and GDM.
-
-Target hardware reference: AMD Ryzen 5 7535HS (Radeon 680M primary iGPU) paired with NVIDIA GeForce RTX 2050 Mobile (dGPU).
+Reproducible, high-performance, and modular Wayland desktop configuration for Fedora 44+, Hyprland 0.56+, Noctalia Desktop Shell v5, Ghostty, and GDM. Built on a universal, hardware-agnostic foundation with automatic chassis detection and modular application gating.
 
 ---
 
 ## Architecture and Core Design Decisions
 
-### 1. Dual-GPU Zero-Freeze DRM Routing
-Linux kernel DRM assignment on hybrid laptops frequently maps `/dev/dri/card0` to the discrete NVIDIA controller and `/dev/dri/card1` to the integrated AMD processor. Under standard Wayland compositors, launching desktop applications triggers Vulkan ICD discovery across all device nodes. This wakes the sleeping NVIDIA dGPU from ACPI D3cold power state, causing severe 2 to 3 second micro-freezes and rapid battery consumption.
+### 1. Universal Hardware Foundation and Device Override Extension Hook
+`kkhypr` runs out of the box on any display and GPU architecture (Intel, AMD, NVIDIA, desktop workstations, or laptops). Display output defaults to automatic preferred resolution and scaling.
 
-`kkhypr` eliminates these freezes through two deterministic environment rules:
+For systems requiring machine-specific hardware tuning (such as dual-GPU DRM isolation, fixed 144Hz refresh rates, or custom fractional scaling), `kkhypr` provides an extension hook in `dotfiles/hypr/hyprland.lua`:
+```lua
+local device_override = os.getenv("HOME") .. "/.config/hypr/device.lua"
+local dev_file = io.open(device_override, "r")
+if dev_file then
+    dev_file:close()
+    pcall(dofile, device_override)
+end
+```
+Placing hardware definitions in `~/.config/hypr/device.lua` keeps the core repository completely portable and decoupled from local machine quirks.
 
-1. **Explicit DRM Card Ordering**:
-   `AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0`
-   Binds the Aquamarine compositor backend directly to the integrated AMD Radeon 680M (`card1`). The NVIDIA card (`card0`) remains secondary and stays powered down in D3cold. Note that Aquamarine uses colon delimiters, so PCI by-path identifiers containing colons must not be used.
+### 2. Chassis-Aware Power Management (Laptop vs Desktop)
+The deployment engine inspects the system chassis via `hostnamectl`, `/sys/class/dmi/id/chassis_type`, and internal battery subsystems:
+* **Laptops**: Configures `hypridle` with 2.5 minute backlight dimming via `brightnessctl` and enables hardware brightness hotkeys.
+* **Desktops**: Configures `hypridle` with DPMS screen-off and session lock timeouts while omitting laptop backlight dimmers that fail on desktop external displays.
 
-2. **Vulkan ICD Loader Filtration**:
-   `VK_LOADER_DRIVERS_SELECT=*radeon*`
-   Restricts Vulkan driver initialization to the Radeon Mesa driver. GTK4 and Libadwaita applications (such as Nautilus) launch instantly without probing the NVIDIA driver.
+### 3. Modular Application Gating
+Dotfiles are deployed dynamically based on installed software. If an application (such as Zed, VS Code, VSCodium, Neovim, or btop) is not installed on the system, its configuration directory is cleanly skipped during installation, preventing configuration bloat. Passing `--all` deploys all application templates regardless of current installation status.
 
-Read the complete guide in [docs/HARDWARE_DRM.md](docs/HARDWARE_DRM.md).
+### 4. Pure Public Distribution
+All personal artificial intelligence model defaults (such as Ollama and Qwen) and hardcoded user home directories have been purged from the base configuration. The repository is 100% plug-and-play for any user.
 
-### 2. Native Lua Configuration Engine
+### 5. Native Lua Configuration Engine
 Hyprland 0.56 introduces native Lua configuration support. `kkhypr` defines the entire compositor surface cleanly in `dotfiles/hypr/hyprland.lua`, using structured tables, loops, and callbacks to provide a modular and type-safe environment.
 
-### 3. Noctalia Desktop Shell v5 & Luau Plugins
+### 6. Noctalia Desktop Shell v5 & Luau Plugins
 Desktop surfaces, menus, status indicators, and notification popups are driven by [Noctalia Desktop Shell v5](https://noctalia.dev). Custom Luau plugins in `dotfiles/noctalia/plugins/custom_bar/` provide:
 * Vertical cell battery status glyphs with direct power-supply sysfs telemetry.
 * Live Bluetooth peripheral connection and battery percentage monitoring via D-Bus.
 
-### 4. Dynamic Workspace Compaction
+### 7. Dynamic Workspace Compaction
 In standard tiling environments, closing windows can leave orphaned or fragmented desktop numbers. The bundled compactor daemon (`dotfiles/hypr/scripts/compact_workspaces.py`) listens to Hyprland socket events and dynamically collapses open workspaces into a contiguous sequence.
 
-### 5. Automated Noctalia Dynamic Theming and Frosted Glassmorphism
+### 8. Automated Noctalia Dynamic Theming and Frosted Glassmorphism
 All application color palettes are dynamically driven by Noctalia Desktop Shell. When a palette (such as Catppuccin, Tokyo Night, or wallpaper-derived tones) is selected in Noctalia Settings or updated via the CLI, Noctalia's template processor synchronizes the color scheme across Ghostty, GTK3/4, Hyprland borders, Zed, VS Code, and VSCodium automatically. Manual palette files and hardcoded color overrides are eliminated. Window opacity and blur across editors and terminals are managed through Hyprland window rules and ignore_opacity blur passes, delivering a frosted glass aesthetic while letting Noctalia manage all colors.
 
 ---
@@ -262,20 +270,28 @@ Apply the symlinks to `~/.config/`:
 make install
 ```
 
-The script links:
-* `dotfiles/hypr/*` -> `~/.config/hypr/*`
-* `dotfiles/noctalia/config.toml` -> `~/.config/noctalia/config.toml`
-* `dotfiles/noctalia/plugins` -> `~/.config/noctalia/plugins`
-* `dotfiles/ghostty/*` -> `~/.config/ghostty/*`
-* `dotfiles/wireplumber/*` -> `~/.config/wireplumber/*`
-* `dotfiles/systemd/user/*` -> `~/.config/systemd/user/*`
-* `system/environment.d/10-vulkan-hybrid.conf` -> `~/.config/environment.d/10-vulkan-hybrid.conf`
+The installer dynamically detects your system chassis (laptop vs desktop) and inspects installed applications:
+* Links core Hyprland, Noctalia shell, GTK 3/4 styling, and systemd session targets.
+* Adapts `hypridle.conf` based on chassis type (enabling backlight dimming for laptops, DPMS power management for desktops).
+* Configures Ghostty, Neovim, Zed, VS Code, VSCodium, btop, and WirePlumber if their respective binaries are detected on your PATH.
+
+To deploy all dotfiles regardless of currently installed packages:
+
+```bash
+./install.sh --all
+```
+
+For laptops with hybrid AMD and NVIDIA graphics requiring dGPU sleep isolation:
+
+```bash
+./install.sh --hybrid-gpu
+```
 
 Any pre-existing non-symlink configuration is safely backed up with a timestamped suffix (`.backup.YYYYMMDD_HHMMSS`).
 
-### 5. Deploy System-Wide GPU Isolation and Audio Fixes
+### 5. Deploy System-Wide GTK Environment Drop-In
 
-To prevent GTK4 app cold-start stalls across all users and eliminate Bluetooth audio transport collisions with GDM:
+To deploy system-wide environment variables (`20-gtk-theme.conf`):
 
 ```bash
 make system-install

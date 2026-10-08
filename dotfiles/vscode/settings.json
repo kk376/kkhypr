@@ -71,7 +71,7 @@
     "emmet.showAbbreviationSuggestions": true,
     "emmet.showExpandedAbbreviation": "always",
     "emmet.extensionsPath": [
-        "/home/kk376/.config/Code/User/emmet"
+        "~/.config/Code/User/emmet"
     ],
     "editor.snippetSuggestions": "top",
     "github.copilot.enable": {
@@ -80,8 +80,6 @@
         "markdown": false,
         "scminput": false
     },
-    "chat.defaultModel": "qwen2.5-coder:3b",
-    "inlineChat.defaultModel": "qwen2.5-coder:3b",
     "chat.newSession.defaultMode": "ask",
     "[html]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"

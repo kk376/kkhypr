@@ -1,25 +1,22 @@
 -- ==============================================================================
 -- kkhypr: Production Hyprland Configuration (Lua)
--- Hardware Target: AMD Ryzen 5 7535HS (Radeon 680M) + NVIDIA GeForce RTX 2050 Mobile
+-- Target: Universal / Hardware-Agnostic
 -- Shell: Noctalia Desktop Shell v5
 -- Terminal: Ghostty
 -- ==============================================================================
 
 --------------------------------------------------------------------------------
--- 1. Hardware & Multi-GPU Zero-Freeze Architecture
+-- 1. System Environment & Hardware Extension Hook
 --------------------------------------------------------------------------------
--- Force Aquamarine/DRM to bind to the integrated AMD Radeon 680M (card1).
--- The NVIDIA RTX 2050 (card0) remains secondary and sleeps in ACPI D3cold.
--- Note: Aquamarine splits AQ_DRM_DEVICES on ':', so by-path PCI addresses with colons must not be used.
-hl.env("AQ_DRM_DEVICES", "/dev/dri/card1:/dev/dri/card0")
-
--- Prevent Vulkan ICD loader from scanning the sleeping NVIDIA card on desktop app launch.
--- Eliminates the 2 to 3 second GTK4/Libadwaita application startup freeze.
-hl.env("VK_LOADER_DRIVERS_SELECT", "*radeon*")
-hl.env("LIBVA_DRIVER_NAME", "radeonsi")
-hl.env("VDPAU_DRIVER", "radeonsi")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "mesa")
 hl.env("PATH", os.getenv("HOME") .. "/.local/bin:" .. os.getenv("HOME") .. "/.cargo/bin:" .. (os.getenv("PATH") or "/usr/local/bin:/usr/bin"))
+
+-- Load optional machine-specific hardware overrides (GPU isolation, custom DRM nodes, etc.)
+local device_override = os.getenv("HOME") .. "/.config/hypr/device.lua"
+local dev_file = io.open(device_override, "r")
+if dev_file then
+    dev_file:close()
+    pcall(dofile, device_override)
+end
 
 --------------------------------------------------------------------------------
 -- 2. Toolkit & Wayland Integration
@@ -57,16 +54,8 @@ hl.config({
 --------------------------------------------------------------------------------
 -- 3. Monitor Setup
 --------------------------------------------------------------------------------
--- Laptop primary eDP-1 display at native resolution and highest refresh rate.
--- 1.25x fractional scale provides a comfortable 1536x864 equivalent UI space.
--- Extra monitors fallback to preferred mode and auto position.
-hl.monitor({
-    output   = "eDP-1",
-    mode     = "1920x1080@144.42",
-    position = "0x0",
-    scale    = 1.25,
-})
-
+-- Universal default: auto-detect preferred resolution, refresh rate, and positioning.
+-- Machine-specific monitor rules or fractional scales can be defined in ~/.config/hypr/device.lua.
 hl.monitor({
     output   = "",
     mode     = "preferred",

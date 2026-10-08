@@ -24,7 +24,7 @@ install:
 	@./install.sh
 
 system-install:
-	@echo "==> Deploying system-level GPU isolation and audio contention fixes..."
+	@echo "==> Deploying system-level GTK environment drop-in..."
 	sudo ./install.sh --system
 
 optimize-services:
