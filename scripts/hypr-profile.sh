@@ -66,11 +66,46 @@ if command -v hyprctl >/dev/null 2>&1 && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}
     hyprctl reload >/dev/null 2>&1 || true
 fi
 
-# Restart Noctalia shell
-if pgrep -x noctalia >/dev/null 2>&1; then
-    pkill -x noctalia 2>/dev/null || true
-    sleep 0.4
-    nohup noctalia -d >/dev/null 2>&1 &
+RESTART_NOCTALIA=false
+for arg in "$@"; do
+    if [[ "$arg" == "--restart" || "$arg" == "-r" ]]; then
+        RESTART_NOCTALIA=true
+    fi
+done
+
+# Refresh or ensure Noctalia desktop shell daemon
+if [[ "$RESTART_NOCTALIA" == "true" ]]; then
+    if pgrep -x noctalia >/dev/null 2>&1; then
+        pkill -x noctalia 2>/dev/null || true
+        wait_cycles=0
+        while pgrep -x noctalia >/dev/null 2>&1; do
+            sleep 0.05
+            wait_cycles=$((wait_cycles + 1))
+            if [[ $wait_cycles -ge 30 ]]; then
+                pkill -9 -x noctalia 2>/dev/null || true
+                break
+            fi
+        done
+        sleep 0.2
+    fi
+    if command -v hyprctl >/dev/null 2>&1 && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+        hyprctl eval 'hl.exec_cmd("noctalia")' >/dev/null 2>&1 || setsid -f noctalia >/dev/null 2>&1 || true
+    else
+        setsid -f noctalia >/dev/null 2>&1 || true
+    fi
+elif pgrep -x noctalia >/dev/null 2>&1; then
+    # Reload live daemon via IPC to update bar, dock, and surfaces instantly without dropping wallpaper or bar
+    noctalia msg config-reload >/dev/null 2>&1 || true
+    noctalia msg dock-reload >/dev/null 2>&1 || true
+    noctalia msg templates-apply >/dev/null 2>&1 || true
+    noctalia msg bar-show >/dev/null 2>&1 || true
+else
+    # If not running, spawn cleanly under Hyprland compositor
+    if command -v hyprctl >/dev/null 2>&1 && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+        hyprctl eval 'hl.exec_cmd("noctalia")' >/dev/null 2>&1 || setsid -f noctalia >/dev/null 2>&1 || true
+    else
+        setsid -f noctalia >/dev/null 2>&1 || true
+    fi
 fi
 
 # Reload Ghostty terminal configuration
