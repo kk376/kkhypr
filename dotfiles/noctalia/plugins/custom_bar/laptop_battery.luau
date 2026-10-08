@@ -55,4 +55,12 @@ function update()
   updateBattery()
 end
 
+function onClick()
+  noctalia.runAsync("noctalia msg panel-toggle control-center power", function() end)
+end
+
+function onRightClick()
+  noctalia.runAsync("noctalia msg panel-toggle control-center power", function() end)
+end
+
 updateBattery()
