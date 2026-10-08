@@ -10,7 +10,7 @@ sound_volume = 0.5
 volume_change_sound = ""
 
 [backdrop]
-blur_intensity = 0.5
+blur_intensity = 0.0
 enabled = true
 tint_intensity = 0.30000001192092896
 
@@ -24,11 +24,12 @@ order = [ "default" ]
     border_width = 0.0
     capsule = true
     capsule_fill = "surface_variant"
-    capsule_opacity = 0.33
+    capsule_opacity = 1.0
     capsule_padding = 6.0
     capsule_radius = 16
     capsule_thickness = 0.85
     center = [ "clock", "notifications" ]
+    compositor_blur = false
     concave_edge_corners = false
     contact_shadow = false
     enabled = true
@@ -71,13 +72,13 @@ order = [ "default" ]
     [[bar.default.capsule_group]]
     fill = "#0a0e14"
     members = [ "workspaces", "tray", "weather" ]
-    opacity = 0.33
+    opacity = 1.0
     radius = 16
 
     [[bar.default.capsule_group]]
     fill = "#0a0e14"
     members = [ "clock", "notifications" ]
-    opacity = 0.33
+    opacity = 1.0
     radius = 16
 
     [[bar.default.capsule_group]]
@@ -94,7 +95,7 @@ order = [ "default" ]
         "local/custom_bar:laptop_battery",
         "session"
     ]
-    opacity = 0.33
+    opacity = 1.0
     radius = 16
 
         [bar.default.dead_zone]
@@ -158,14 +159,14 @@ active_monitor_only = false
 active_opacity = 1.0
 active_scale = 1.0
 auto_hide = false
-background_opacity = 0.87999999523162842
+background_opacity = 1.0
 border = "outline"
 border_width = 0.0
 concave_edge_corners = true
 cross_axis_padding = 8
 enabled = false
 icon_size = 48
-inactive_opacity = 0.85000002384185791
+inactive_opacity = 1.0
 inactive_scale = 0.85000002384185791
 item_spacing = 6
 launcher_custom_image = ""
@@ -283,8 +284,8 @@ sunset = ""
 
 [lockscreen]
 allow_empty_password = false
-blur_intensity = 0.5
-blurred_desktop = true
+blur_intensity = 0.0
+blurred_desktop = false
 enabled = true
 fingerprint = true
 lock_before_suspend = true
@@ -308,7 +309,7 @@ temperature_day = 6500
 temperature_night = 4000
 
 [notification]
-background_opacity = 0.97000002861022949
+background_opacity = 1.0
 border = true
 collapse_on_dismiss = true
 enable_daemon = true
@@ -325,7 +326,7 @@ show_actions = true
 show_app_name = true
 
 [osd]
-background_opacity = 0.97000002861022949
+background_opacity = 1.0
 border = true
 enabled = true
 monitors = []
@@ -398,7 +399,7 @@ popup_borders = true
 popup_shadows = true
 screen_time_enabled = false
 settings_show_advanced = true
-settings_window_translucent = true
+settings_window_translucent = false
 setup_wizard_enabled = true
 shared_gl_context = true
 show_location = true
@@ -453,7 +454,7 @@ time_format = "{:%H:%M}"
     session_placement = "floating"
     session_position = "auto"
     shadow = true
-    transparency_mode = "glass"
+    transparency_mode = "solid"
     wallpaper_placement = "floating"
     wallpaper_position = "auto"
 

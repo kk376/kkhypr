@@ -510,6 +510,7 @@ main() {
     fi
 
     deploy_configurations
+    deploy_appearance_profiles
 
     if [[ "$OPTIMIZE_SERVICES" -eq 1 ]]; then
         optimize_services
@@ -517,6 +518,58 @@ main() {
 
     log_pass "Deployment finished successfully."
     log_info "To test Hyprland, log out and select 'Hyprland' in your display manager session menu."
+}
+
+deploy_appearance_profiles() {
+    log_info "Deploying hypr-default and hypr-blur profile switchers..."
+    mkdir -p "$LOCAL_BIN"
+
+    deploy_link "$SCRIPT_DIR/scripts/hypr-profile.sh" "$LOCAL_BIN/hypr-profile.sh"
+
+    cat << 'EOF' > "$LOCAL_BIN/hypr-default"
+#!/usr/bin/env bash
+exec hypr-profile.sh default "$@"
+EOF
+    chmod +x "$LOCAL_BIN/hypr-default"
+
+    cat << 'EOF' > "$LOCAL_BIN/hypr-blur"
+#!/usr/bin/env bash
+exec hypr-profile.sh blur "$@"
+EOF
+    chmod +x "$LOCAL_BIN/hypr-blur"
+
+    # Shell aliases deployment across bash, zsh, and fish
+    local bashrc="$TARGET_HOME/.bashrc"
+    if [[ -L "$bashrc" && ! -e "$bashrc" ]]; then
+        rm -f "$bashrc"
+        if [[ -f /etc/skel/.bashrc ]]; then
+            cp /etc/skel/.bashrc "$bashrc"
+        else
+            touch "$bashrc"
+        fi
+    fi
+    if [[ -f "$bashrc" ]]; then
+        if ! grep -q "alias hypr-default=" "$bashrc"; then
+            printf "\n# Hyprland appearance profile switchers\nalias hypr-default='hypr-profile.sh default'\nalias hypr-blur='hypr-profile.sh blur'\n" >> "$bashrc"
+            log_pass "Configured aliases in: $bashrc"
+        fi
+    fi
+
+    local zshrc="$TARGET_HOME/.zshrc"
+    if [[ -f "$zshrc" ]]; then
+        if ! grep -q "alias hypr-default=" "$zshrc"; then
+            printf "\n# Hyprland appearance profile switchers\nalias hypr-default='hypr-profile.sh default'\nalias hypr-blur='hypr-profile.sh blur'\n" >> "$zshrc"
+            log_pass "Configured aliases in: $zshrc"
+        fi
+    fi
+
+    local fish_conf="$CONFIG_DIR/fish/config.fish"
+    if [[ -f "$fish_conf" ]]; then
+        if ! grep -q "alias hypr-default" "$fish_conf"; then
+            printf "\n# Hyprland appearance profile switchers\nalias hypr-default 'hypr-profile.sh default'\nalias hypr-blur 'hypr-profile.sh blur'\n" >> "$fish_conf"
+            log_pass "Configured aliases in: $fish_conf"
+        fi
+    fi
 }
 
 main

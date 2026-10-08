@@ -1,0 +1,227 @@
+/* Tab Bar: Seamless with terminal background, no grey bar */
+
+/* Match the tab bar container seamlessly to Ghostty terminal background */
+window,
+window.background,
+window.window-theme-ghostty,
+window.csd,
+window.ssd,
+GhosttyWindow,
+window toolbarview,
+toolbarview,
+tabview,
+tabview > *,
+tabview widget,
+.tab,
+GhosttyTab,
+GhosttySplitTree,
+.surface,
+GhosttySurface,
+GtkGLArea {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-color: transparent;
+    box-shadow: none;
+    outline: none;
+}
+
+toolbarview > revealer.bottom-bar,
+toolbarview > revealer.bottom-bar.raised,
+toolbarview > revealer.bottom-bar.flat,
+toolbarview > .bottom-bar,
+toolbarview > .bottom-bar.raised,
+toolbarview > .bottom-bar.flat,
+revealer.bottom-bar,
+revealer.bottom-bar.raised,
+revealer.bottom-bar.flat,
+.bottom-bar,
+.bottom-bar.raised,
+.bottom-bar.flat {
+    background-color: rgba(16, 19, 28, 0.75);
+    background-image: none;
+    border: none;
+    border-color: transparent;
+    box-shadow: none;
+    outline: none;
+}
+
+/* Eliminate multi-frame resize animation flicker and screen flashes */
+* {
+    transition: none;
+    transition-duration: 0s;
+    animation: none;
+    animation-duration: 0s;
+}
+
+revealer,
+revealer.bottom-bar,
+tabbar revealer,
+tabbar tabbox > revealer,
+toolbarview > revealer,
+toolbarview > revealer.bottom-bar,
+tabbar,
+tabbar tab,
+tabbar tabboxchild,
+tabbar tabbox,
+tabview,
+tabview > * {
+    transition: none;
+    transition-duration: 0s;
+    animation: none;
+    animation-duration: 0s;
+}
+
+windowhandle,
+tabbar,
+tabbar revealer,
+tabbar box,
+tabbar .box,
+tabbar scrolledwindow,
+tabbar scrolledwindow > viewport,
+tabbar viewport,
+tabbar tabbox,
+tabbar tabboxchild,
+tabbar .start-action,
+tabbar .end-action,
+toolbar,
+.toolbar,
+actionbar,
+actionbar > revealer > box {
+    background: transparent;
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-color: transparent;
+    box-shadow: none;
+    outline: none;
+}
+
+tabbar {
+    min-height: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
+tabbar tabbox {
+    padding-top: 1px;
+    padding-bottom: 2px;
+    padding-left: 3px;
+    min-height: 0px;
+}
+
+/* Remove scrolledwindow undershoot shadow indicators */
+tabbar scrolledwindow undershoot.left,
+tabbar scrolledwindow undershoot.right,
+tabbar scrolledwindow undershoot.top,
+tabbar scrolledwindow undershoot.bottom {
+    background: none;
+    box-shadow: none;
+}
+
+/* Hide default separator line and drop indicator */
+tabbar separator,
+tabbar tabbox > separator,
+tabbar tab indicator,
+tabbar indicator,
+tabbar tabbox > revealer > indicator {
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    background: transparent;
+    border: none;
+}
+
+/* Inactive Tab: Compact solid styling */
+tabbar tabboxchild {
+    min-width: 0px;
+}
+
+tabbar tab,
+tabbar tabbox > tabboxchild tab {
+    background-color: #18183c;
+    color: #a6adc8;
+    border-radius: 5px;
+    margin: 1px 2px;
+    padding: 2px 5px;
+    min-height: 22px;
+    min-width: 0px;
+    font-size: 11px;
+    font-weight: normal;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+}
+
+tabbar tab:hover,
+tabbar tabbox > tabboxchild tab:hover {
+    background-color: #2b2b6e;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Active Tab: Solid vibrant accent (no color change on hover) */
+tabbar tab:selected,
+tabbar tab:selected:hover,
+tabbar tabbox > tabboxchild tab:selected,
+tabbar tabbox > tabboxchild tab:selected:hover {
+    background-color: #a9aefe;
+    color: #070722;
+    border-radius: 5px;
+    margin: 1px 2px;
+    padding: 2px 5px;
+    min-height: 22px;
+    min-width: 0px;
+    font-size: 11px;
+    font-weight: bold;
+    border: 1px solid #a9aefe;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Labels inside tabs */
+tabbar tab:selected label,
+tabbar tab:selected title,
+tabbar tab:selected:hover label,
+tabbar tab:selected:hover title {
+    color: #070722;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0px 1px;
+}
+
+tabbar tab label,
+tabbar tab title,
+tabbar tab:not(:selected) label,
+tabbar tab:not(:selected) title,
+tabbar tab:hover label,
+tabbar tab:hover title {
+    color: #a6adc8;
+    font-size: 11px;
+    padding: 0px 1px;
+}
+
+/* Hide and collapse Tab Close Button */
+tabbar tab button.tab-close-button,
+tabbar tab button.close,
+tabbar tab .close-button,
+tabbar tab button.image-button:not(.tab-indicator) {
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
+    border: none;
+    background: none;
+    box-shadow: none;
+    outline: none;
+}
+
+tabbar tab button.tab-close-button image,
+tabbar tab button.close image,
+tabbar tab .close-button image,
+tabbar tab button.image-button:not(.tab-indicator) image {
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0px;
+    margin: 0px;
+}
