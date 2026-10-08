@@ -106,6 +106,12 @@ The current configuration intentionally keeps VRR enabled while disabling
 Hyprland VFR:
 
 ```lua
+cursor = {
+    no_hardware_cursors = false,
+    no_break_fs_vrr     = 2,
+    min_refresh_rate    = 60,
+},
+
 misc = {
     vrr = 1,
 },
@@ -124,6 +130,8 @@ Runtime verification:
 ```bash
 hyprctl getoption misc:vrr
 hyprctl getoption debug:vfr
+hyprctl getoption cursor:no_break_fs_vrr
+hyprctl getoption cursor:min_refresh_rate
 ```
 
 Expected state:
@@ -131,6 +139,8 @@ Expected state:
 ```text
 misc.vrr = 1
 debug.vfr = false
+cursor:no_break_fs_vrr = 2
+cursor:min_refresh_rate = 60
 ```
 
 ## Decision
