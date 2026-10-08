@@ -4,35 +4,38 @@ This document details the system design, hardware routing, daemon architecture, 
 
 ---
 
-## 1. Multi-GPU Zero-Freeze DRM Routing
+## 1. Universal Hardware Architecture and Device Extension Hook
 
-Modern gaming and creator laptops pair an energy-efficient integrated GPU (iGPU) with a high-draw discrete graphics processor (dGPU). On the target reference hardware (AMD Ryzen 5 7535HS with Radeon 680M iGPU and NVIDIA GeForce RTX 2050 Mobile dGPU), the Linux kernel DRM subsystem frequently assigns:
-* `/dev/dri/card0`: Discrete NVIDIA RTX 2050
-* `/dev/dri/card1`: Integrated AMD Radeon 680M
+`kkhypr` is designed to be completely hardware-agnostic, running reliably on desktops, laptops, Intel graphics, AMD Radeon, and NVIDIA systems.
 
-Under standard Wayland compositors and GTK4/Libadwaita applications, launching any desktop application triggers Vulkan ICD discovery and DRM card enumeration. This probes `/dev/dri/card0`, waking the NVIDIA dGPU from ACPI D3cold power state into full D0 operating mode. This transition introduces a jarring 2 to 3 second micro-freeze across the entire desktop.
-
-`kkhypr` eliminates these freezes through two deterministic environment rules:
-
-### A. Explicit DRM Card Ordering
-```ini
-AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0
+### A. Automatic Preferred Display Configuration
+By default, `dotfiles/hypr/hyprland.lua` configures universal display auto-detection:
+```lua
+hl.monitor({
+    output   = "",
+    mode     = "preferred",
+    position = "auto",
+    scale    = 1,
+})
 ```
-This binds the Aquamarine compositor backend directly to the integrated AMD Radeon 680M (`card1`) for all primary display presentation and composition. The discrete NVIDIA controller (`card0`) remains strictly secondary and stays powered down in ACPI D3cold until explicitly requested via prime offload. Note that Aquamarine uses colon delimiters to split device paths. PCI by-path identifiers containing colons must not be used.
+This guarantees that external monitors, ultrawide panels, and internal laptop screens initialize at native capability without manual editing.
 
-### B. Vulkan ICD Loader Filtration
-```ini
-VK_LOADER_DRIVERS_SELECT=*radeon*
+### B. Machine-Specific Device Hook (`device.lua`)
+For systems requiring custom hardware-level configuration, `dotfiles/hypr/hyprland.lua` provides an extension hook:
+```lua
+local device_override = os.getenv("HOME") .. "/.config/hypr/device.lua"
+local dev_file = io.open(device_override, "r")
+if dev_file then
+    dev_file:close()
+    pcall(dofile, device_override)
+end
 ```
-Standard Vulkan loaders enumerate all installed ICD drivers on disk upon initial context creation. Restricting the pattern to Mesa Radeon drivers guarantees that UI toolkits such as GTK4, Libadwaita, and Chromium do not probe the NVIDIA proprietary driver during window initialization.
+When present, `~/.config/hypr/device.lua` can define explicit panel refresh rates, fractional scaling (e.g. 1.25x for 1080p 15.6" screens), or multi-GPU Aquamarine DRM device strings without modifying the upstream dotfiles.
 
-### C. Acceleration Environment Variables
-The environment configuration enforces hardware-accelerated decoding and 2D rendering through Mesa:
-```ini
-LIBVA_DRIVER_NAME=radeonsi
-VDPAU_DRIVER=radeonsi
-__GLX_VENDOR_LIBRARY_NAME=mesa
-```
+### C. Optional Hybrid GPU Isolation (AMD + NVIDIA Laptops)
+On hybrid laptops pairing an AMD iGPU with an NVIDIA dGPU, standard Vulkan and DRM probing can wake the sleeping NVIDIA controller from ACPI D3cold, causing 2 to 3 second application startup freezes.
+
+For systems subject to this behavior, running `./install.sh --hybrid-gpu` deploys `system/environment.d/10-vulkan-hybrid.conf` to isolate Vulkan discovery to the integrated Radeon processor and prioritize the AMD DRM node (`AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0` and `VK_LOADER_DRIVERS_SELECT=*radeon*`). Full details are documented in [docs/HARDWARE_DRM.md](docs/HARDWARE_DRM.md).
 
 ---
 

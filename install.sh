@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# kkhypr: Installer and Symlink Deployment Engine
+# kkhypr: Universal Installer and Symlink Deployment Engine
 # Target: Fedora 44+, Hyprland 0.56+, Noctalia Shell v5, Ghostty
+# Portable, Modular, and Hardware-Agnostic
 # ==============================================================================
 
 set -euo pipefail
 
-# Script directory
+# Script and dynamic path resolution
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
+TARGET_USER="${SUDO_USER:-$(id -un)}"
+TARGET_HOME="$(getent passwd "$TARGET_USER" 2>/dev/null | cut -d: -f6 || echo "$HOME")"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$TARGET_HOME/.config}"
+LOCAL_BIN="$TARGET_HOME/.local/bin"
+LOCAL_LIB="$TARGET_HOME/.local/lib"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 
-# Modes
+# Operational modes
 DRY_RUN=0
 CHECK_ONLY=0
 FORCE=0
+DEPLOY_ALL=0
+HYBRID_GPU=0
 OPTIMIZE_SERVICES=0
 SYSTEM_INSTALL=0
 
@@ -42,8 +49,10 @@ Options:
   --check              Run diagnostic validation on dependencies and configs only
   --dry-run            Simulate installation actions without modifying files
   --force              Overwrite existing targets if they are not matching symlinks
+  --all                Deploy all application configurations regardless of installed binaries
+  --hybrid-gpu         Deploy optional AMD+NVIDIA hybrid GPU isolation environment
   --optimize-services  Disable redundant Fedora services (ABRT, Rsyslog) to free RAM
-  --system             Deploy system-wide GPU isolation and GDM audio conflict fixes (requires sudo)
+  --system             Deploy system-wide environment drop-ins (requires sudo)
   --help               Show this help message
 EOF
     exit 0
@@ -64,6 +73,14 @@ while [[ $# -gt 0 ]]; do
             FORCE=1
             shift
             ;;
+        --all)
+            DEPLOY_ALL=1
+            shift
+            ;;
+        --hybrid-gpu)
+            HYBRID_GPU=1
+            shift
+            ;;
         --optimize-services)
             OPTIMIZE_SERVICES=1
             shift
@@ -81,6 +98,36 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+detect_chassis() {
+    if command -v hostnamectl >/dev/null 2>&1; then
+        local h_chassis
+        h_chassis="$(hostnamectl chassis 2>/dev/null || true)"
+        if [[ "$h_chassis" =~ ^(laptop|notebook|convertible|portable)$ ]]; then
+            echo "laptop"
+            return 0
+        elif [[ "$h_chassis" =~ ^(desktop|server|vm|container)$ ]]; then
+            echo "desktop"
+            return 0
+        fi
+    fi
+
+    if [[ -f /sys/class/dmi/id/chassis_type ]]; then
+        local ctype
+        ctype="$(cat /sys/class/dmi/id/chassis_type 2>/dev/null || echo 0)"
+        if [[ "$ctype" =~ ^(8|9|10|11|14|30|31|32)$ ]]; then
+            echo "laptop"
+            return 0
+        fi
+    fi
+
+    if compgen -G "/sys/class/power_supply/BAT*" >/dev/null; then
+        echo "laptop"
+        return 0
+    fi
+
+    echo "desktop"
+}
 
 check_binary() {
     local bin="$1"
@@ -152,18 +199,15 @@ validate_configurations() {
 }
 
 check_hardware_topology() {
-    log_info "Auditing GPU hardware routing..."
-    local igpu_path="/dev/dri/card1"
-    local dgpu_path="/dev/dri/card0"
+    local chassis
+    chassis="$(detect_chassis)"
+    log_info "Auditing system topology (Chassis: $chassis)..."
 
-    if [[ -e "$igpu_path" ]]; then
-        log_pass "Primary AMD iGPU DRM node confirmed at $igpu_path"
+    local -a cards=(/dev/dri/card*)
+    if [[ -e "${cards[0]}" ]]; then
+        log_pass "Detected DRM GPU device nodes: ${cards[*]}"
     else
-        log_warn "Primary AMD iGPU DRM node not found at expected path: $igpu_path"
-    fi
-
-    if [[ -e "$dgpu_path" ]]; then
-        log_info "Secondary NVIDIA dGPU DRM node confirmed at $dgpu_path"
+        log_warn "No DRM GPU device nodes detected in /dev/dri/"
     fi
 }
 
@@ -238,57 +282,63 @@ deploy_hard_link() {
     log_pass "Hardlinked: $target_path -> $source_path"
 }
 
-deploy_configurations() {
-    log_info "Deploying configuration symlinks..."
+deploy_app() {
+    local bin="$1"
+    local name="$2"
+    shift 2
+    if command -v "$bin" >/dev/null 2>&1 || [[ "$DEPLOY_ALL" -eq 1 ]]; then
+        log_info "Configuring $name..."
+        "$@"
+    else
+        log_info "Skipping $name ($bin not found, pass --all to deploy anyway)"
+    fi
+}
 
-    # Hyprland ecosystem
+deploy_hypridle_config() {
+    local chassis="$1"
+    local target="$CONFIG_DIR/hypr/hypridle.conf"
+
+    if [[ "$chassis" == "laptop" ]]; then
+        deploy_link "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" "$target"
+    else
+        log_info "Configuring desktop power idle profile (without laptop backlight dimming)..."
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            log_info "[DRY-RUN] Generate desktop hypridle: $target"
+            return 0
+        fi
+        mkdir -p "$CONFIG_DIR/hypr"
+        sed '/# Idle dimming/,+4d' "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" > "$target.tmp"
+        mv "$target.tmp" "$target"
+        log_pass "Deployed desktop hypridle profile: $target"
+    fi
+}
+
+deploy_configurations() {
+    log_info "Deploying core desktop and toolkit configurations..."
+    local chassis
+    chassis="$(detect_chassis)"
+
+    # Core Hyprland ecosystem
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprland.lua" "$CONFIG_DIR/hypr/hyprland.lua"
     if [[ -L "$CONFIG_DIR/hypr/hyprland.conf" && ! -e "$CONFIG_DIR/hypr/hyprland.conf" ]]; then
         rm -f "$CONFIG_DIR/hypr/hyprland.conf"
     fi
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" "$CONFIG_DIR/hypr/hypridle.conf"
+    deploy_hypridle_config "$chassis"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprlock.conf" "$CONFIG_DIR/hypr/hyprlock.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprpaper.conf" "$CONFIG_DIR/hypr/hyprpaper.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/noctalia.lua" "$CONFIG_DIR/hypr/noctalia.lua"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/compact_workspaces.py" "$CONFIG_DIR/hypr/scripts/compact_workspaces.py"
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/screenshot.sh" "$CONFIG_DIR/hypr/scripts/screenshot.sh"
 
-    # Noctalia shell
+    # Noctalia desktop shell
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/palettes/noctalia.json" "$CONFIG_DIR/noctalia/palettes/noctalia.json"
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/colors.json" "$CONFIG_DIR/noctalia/colors.json"
+    mkdir -p "$CONFIG_DIR/noctalia/scripts"
+    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh" "$CONFIG_DIR/noctalia/scripts/sync-gtk-theme.sh"
+    chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh"
 
-    # Ghostty terminal
-    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/config.ghostty" "$CONFIG_DIR/ghostty/config.ghostty"
-    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/gtk.css" "$CONFIG_DIR/ghostty/gtk.css"
-    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/themes/noctalia" "$CONFIG_DIR/ghostty/themes/noctalia"
-
-    # btop system monitor (transparent background matching Ghostty)
-    deploy_link "$SCRIPT_DIR/dotfiles/btop/btop.conf" "$CONFIG_DIR/btop/btop.conf"
-
-    # WirePlumber audio and bluetooth policy
-    deploy_link "$SCRIPT_DIR/dotfiles/wireplumber/wireplumber.conf.d/50-bluez.conf" "$CONFIG_DIR/wireplumber/wireplumber.conf.d/50-bluez.conf"
-
-    # Neovim (dynamic base16 / matugen palette support)
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/init.lua" "$CONFIG_DIR/nvim/init.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lazy-lock.json" "$CONFIG_DIR/nvim/lazy-lock.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/lazy.lua" "$CONFIG_DIR/nvim/lua/config/lazy.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/options.lua" "$CONFIG_DIR/nvim/lua/config/options.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/keymaps.lua" "$CONFIG_DIR/nvim/lua/config/keymaps.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/colorscheme.lua" "$CONFIG_DIR/nvim/lua/plugins/colorscheme.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/treesitter.lua" "$CONFIG_DIR/nvim/lua/plugins/treesitter.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/base16.lua" "$CONFIG_DIR/nvim/lua/plugins/base16.lua"
-
-    # VS Code & VSCodium (NoctaliaTheme + glassmorphism/blur)
-    deploy_link "$SCRIPT_DIR/dotfiles/vscode/settings.json" "$CONFIG_DIR/Code/User/settings.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/vscodium/settings.json" "$CONFIG_DIR/VSCodium/User/settings.json"
-
-    # Zed Editor (Noctalia Dark/Light + background opacity & blur)
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/settings.json" "$CONFIG_DIR/zed/settings.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/keymap.json" "$CONFIG_DIR/zed/keymap.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/tasks.json" "$CONFIG_DIR/zed/tasks.json"
-    deploy_hard_link "$SCRIPT_DIR/dotfiles/zed/themes/noctalia.json" "$CONFIG_DIR/zed/themes/noctalia.json"
-
-    # GTK3 and GTK4 dynamic Noctalia theming for GNOME applications
+    # GTK3 and GTK4 dynamic Noctalia theming
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk.css" "$CONFIG_DIR/gtk-3.0/gtk.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk-dark.css" "$CONFIG_DIR/gtk-3.0/gtk-dark.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/noctalia.css" "$CONFIG_DIR/gtk-3.0/noctalia.css"
@@ -298,12 +348,8 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/noctalia.css" "$CONFIG_DIR/gtk-4.0/noctalia.css"
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-4.0/settings.ini" "$CONFIG_DIR/gtk-4.0/settings.ini"
 
-    # Noctalia hooks and GTK real-time hot-reload deployment
-    mkdir -p "$CONFIG_DIR/noctalia/scripts" "$HOME/.local/lib"
-    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh" "$CONFIG_DIR/noctalia/scripts/sync-gtk-theme.sh"
-    chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh"
-
-    # Build and install GTK real-time stylesheet hot-reload shim
+    # Compile and install GTK real-time stylesheet hot-reload shim
+    mkdir -p "$LOCAL_LIB"
     if command -v gcc >/dev/null 2>&1; then
         local cflags_libs
         cflags_libs=$(pkg-config --cflags --libs gio-2.0 glib-2.0 2>/dev/null || true)
@@ -311,18 +357,70 @@ deploy_configurations() {
         gcc -shared -fPIC -O2 -Wall -Wextra "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.c" -o "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" -ldl $cflags_libs 2>/dev/null || true
     fi
     if [[ -f "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" ]]; then
-        install -m 755 "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" "$HOME/.local/lib/libgtk-live-reload.so"
-        log_pass "Installed GTK live stylesheet reload shim ($HOME/.local/lib/libgtk-live-reload.so)"
+        install -m 755 "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" "$LOCAL_LIB/libgtk-live-reload.so"
+        log_pass "Installed GTK live stylesheet reload shim ($LOCAL_LIB/libgtk-live-reload.so)"
     fi
 
-    # Systemd session target and environment drop-in
+    # Systemd session target and user environment
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"
-    deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"
     deploy_link "$SCRIPT_DIR/system/environment.d/20-gtk-theme.conf" "$CONFIG_DIR/environment.d/20-gtk-theme.conf"
 
-    if [[ ! -f "/etc/environment.d/10-vulkan-hybrid.conf" ]]; then
-        log_warn "System-wide GPU isolation missing (/etc/environment.d/10-vulkan-hybrid.conf). Run 'sudo ./install.sh --system' to apply."
+    if [[ "$HYBRID_GPU" -eq 1 ]]; then
+        deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"
+        log_pass "Deployed hybrid GPU isolation environment drop-in"
     fi
+
+    # Modular Application Deployment
+    deploy_app "ghostty" "Ghostty Terminal" _deploy_ghostty
+    deploy_app "btop" "btop System Monitor" _deploy_btop
+    deploy_app "nvim" "Neovim" _deploy_nvim
+    deploy_app "zed" "Zed Editor" _deploy_zed
+    deploy_app "code" "VS Code" _deploy_vscode
+    deploy_app "codium" "VSCodium" _deploy_vscodium
+    deploy_app "wpctl" "WirePlumber Bluetooth Policy" _deploy_wireplumber
+}
+
+_deploy_ghostty() {
+    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/config.ghostty" "$CONFIG_DIR/ghostty/config.ghostty"
+    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/gtk.css" "$CONFIG_DIR/ghostty/gtk.css"
+    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/themes/noctalia" "$CONFIG_DIR/ghostty/themes/noctalia"
+    mkdir -p "$LOCAL_BIN"
+    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/ghostty-theme"
+    deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/term-theme"
+}
+
+_deploy_btop() {
+    deploy_link "$SCRIPT_DIR/dotfiles/btop/btop.conf" "$CONFIG_DIR/btop/btop.conf"
+}
+
+_deploy_nvim() {
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/init.lua" "$CONFIG_DIR/nvim/init.lua"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lazy-lock.json" "$CONFIG_DIR/nvim/lazy-lock.json"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/lazy.lua" "$CONFIG_DIR/nvim/lua/config/lazy.lua"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/options.lua" "$CONFIG_DIR/nvim/lua/config/options.lua"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/keymaps.lua" "$CONFIG_DIR/nvim/lua/config/keymaps.lua"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/colorscheme.lua" "$CONFIG_DIR/nvim/lua/plugins/colorscheme.lua"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/treesitter.lua" "$CONFIG_DIR/nvim/lua/plugins/treesitter.lua"
+    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/base16.lua" "$CONFIG_DIR/nvim/lua/plugins/base16.lua"
+}
+
+_deploy_zed() {
+    deploy_link "$SCRIPT_DIR/dotfiles/zed/settings.json" "$CONFIG_DIR/zed/settings.json"
+    deploy_link "$SCRIPT_DIR/dotfiles/zed/keymap.json" "$CONFIG_DIR/zed/keymap.json"
+    deploy_link "$SCRIPT_DIR/dotfiles/zed/tasks.json" "$CONFIG_DIR/zed/tasks.json"
+    deploy_hard_link "$SCRIPT_DIR/dotfiles/zed/themes/noctalia.json" "$CONFIG_DIR/zed/themes/noctalia.json"
+}
+
+_deploy_vscode() {
+    deploy_link "$SCRIPT_DIR/dotfiles/vscode/settings.json" "$CONFIG_DIR/Code/User/settings.json"
+}
+
+_deploy_vscodium() {
+    deploy_link "$SCRIPT_DIR/dotfiles/vscodium/settings.json" "$CONFIG_DIR/VSCodium/User/settings.json"
+}
+
+_deploy_wireplumber() {
+    deploy_link "$SCRIPT_DIR/dotfiles/wireplumber/wireplumber.conf.d/50-bluez.conf" "$CONFIG_DIR/wireplumber/wireplumber.conf.d/50-bluez.conf"
 }
 
 optimize_services() {
@@ -369,94 +467,27 @@ optimize_services() {
 }
 
 deploy_system() {
-    log_info "Deploying system-level GPU isolation and audio conflict fixes..."
+    log_info "Deploying system-level environment drop-ins..."
 
     if [[ "$EUID" -ne 0 ]]; then
         log_err "System configuration requires root privileges. Please re-run with: sudo $0 --system"
         return 1
     fi
 
-    # 1. System-wide Vulkan and GPU environment isolation
     local env_dir="/etc/environment.d"
-    local env_target="$env_dir/10-vulkan-hybrid.conf"
     mkdir -p "$env_dir"
-    cp "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$env_target"
-    chmod 644 "$env_target"
-    log_pass "Deployed system-wide Vulkan isolation environment: $env_target"
 
     cp "$SCRIPT_DIR/system/environment.d/20-gtk-theme.conf" "$env_dir/20-gtk-theme.conf"
     chmod 644 "$env_dir/20-gtk-theme.conf"
     log_pass "Deployed system-wide GTK theme environment: $env_dir/20-gtk-theme.conf"
 
-    # 2. Prevent GDM greeter and system users from starting PipeWire / WirePlumber
-    local systemd_user_dir="/etc/systemd/user"
-    local dropin_src="$SCRIPT_DIR/system/systemd/user/10-disable-greeter.conf"
-    local -a service_dropin_dirs=(
-        "$systemd_user_dir/pipewire.socket.d"
-        "$systemd_user_dir/pipewire.service.d"
-        "$systemd_user_dir/pipewire-pulse.socket.d"
-        "$systemd_user_dir/pipewire-pulse.service.d"
-        "$systemd_user_dir/wireplumber.service.d"
-    )
-
-    for dir in "${service_dropin_dirs[@]}"; do
-        mkdir -p "$dir"
-        cp "$dropin_src" "$dir/10-disable-greeter.conf"
-        chmod 644 "$dir/10-disable-greeter.conf"
-    done
-    log_pass "Deployed systemd user drop-ins to prevent GDM greeter audio contention"
-
-    # 3. Optimize BlueZ Bluetooth policy for rapid reconnection
-    if [[ -f "/etc/bluetooth/main.conf" ]]; then
-        python3 -c '
-import re
-path = "/etc/bluetooth/main.conf"
-with open(path) as f:
-    text = f.read()
-
-settings = {
-    "AutoEnable": "true",
-    "FastConnectable": "true",
-    "ReconnectAttempts": "7",
-    "ReconnectIntervals": "1, 2, 4, 8, 16, 32, 64"
-}
-
-match = re.search(r"(\[Policy\]\n)(.*?)(\n\[|\Z)", text, re.DOTALL)
-if match:
-    header, body, trailer = match.group(1), match.group(2), match.group(3)
-    lines = body.splitlines()
-    new_lines = []
-    handled = set()
-    for line in lines:
-        stripped = line.strip()
-        found_k = None
-        for k in settings:
-            if stripped.startswith(k) or stripped.startswith("#" + k) or stripped.startswith("# " + k):
-                found_k = k
-                break
-        if found_k:
-            if found_k not in handled:
-                new_lines.append(f"{found_k} = {settings[found_k]}")
-                handled.add(found_k)
-        else:
-            new_lines.append(line)
-    for k, v in settings.items():
-        if k not in handled:
-            new_lines.append(f"{k} = {v}")
-    new_text = text[:match.start()] + header + "\n".join(new_lines) + trailer + text[match.end():]
-    with open(path, "w") as f:
-        f.write(new_text)
-'
-        log_pass "Configured /etc/bluetooth/main.conf Policy parameters"
+    if [[ "$HYBRID_GPU" -eq 1 ]]; then
+        local env_target="$env_dir/10-vulkan-hybrid.conf"
+        cp "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$env_target"
+        chmod 644 "$env_target"
+        log_pass "Deployed system-wide Vulkan hybrid GPU isolation environment: $env_target"
     fi
 
-    # 4. Remove obsolete GDM user WirePlumber configuration if present
-    if [[ -f "/var/lib/gdm/.config/wireplumber/wireplumber.conf.d/disable-bluetooth.conf" ]]; then
-        rm -f "/var/lib/gdm/.config/wireplumber/wireplumber.conf.d/disable-bluetooth.conf"
-        log_pass "Removed obsolete GDM user WirePlumber configuration"
-    fi
-
-    # 5. Reload systemd daemon
     systemctl daemon-reload
     log_pass "Reloaded systemd daemon"
 }
@@ -467,7 +498,7 @@ main() {
         exit 0
     fi
 
-    log_info "Starting kkhypr deployment script..."
+    log_info "Starting kkhypr universal installer (User: $TARGET_USER, Home: $TARGET_HOME)..."
 
     check_dependencies
     validate_configurations
