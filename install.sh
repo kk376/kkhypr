@@ -329,6 +329,10 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/noctalia.lua" "$CONFIG_DIR/hypr/noctalia.lua"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/compact_workspaces.py" "$CONFIG_DIR/hypr/scripts/compact_workspaces.py"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/screenshot.sh" "$CONFIG_DIR/hypr/scripts/screenshot.sh"
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/bt_battery_sync.py" "$CONFIG_DIR/hypr/scripts/bt_battery_sync.py"
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/exit.sh" "$CONFIG_DIR/hypr/scripts/exit.sh"
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/session_teardown_listener.py" "$CONFIG_DIR/hypr/scripts/session_teardown_listener.py"
+    chmod +x "$SCRIPT_DIR/dotfiles/hypr/scripts/exit.sh" "$SCRIPT_DIR/dotfiles/hypr/scripts/session_teardown_listener.py"
 
     # Noctalia desktop shell
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
@@ -364,9 +368,24 @@ deploy_configurations() {
         log_pass "Installed GTK live stylesheet reload shim ($LOCAL_LIB/libgtk-live-reload.so)"
     fi
 
-    # Systemd session target and user environment
+    # Systemd session target and isolated user services
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"
-    deploy_link "$SCRIPT_DIR/system/environment.d/20-gtk-theme.conf" "$CONFIG_DIR/environment.d/20-gtk-theme.conf"
+    deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-workspace-compactor.service" "$CONFIG_DIR/systemd/user/hyprland-workspace-compactor.service"
+    deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-bt-battery.service" "$CONFIG_DIR/systemd/user/hyprland-bt-battery.service"
+    mkdir -p "$CONFIG_DIR/systemd/user/hyprland-session.target.wants"
+    ln -sf "$CONFIG_DIR/systemd/user/hyprland-bt-battery.service" "$CONFIG_DIR/systemd/user/hyprland-session.target.wants/hyprland-bt-battery.service"
+
+    # Clean up compactor from wants (it is supervised directly by hyprland.lua) and legacy generic graphical-session wants
+    rm -f "$CONFIG_DIR/systemd/user/hyprland-session.target.wants/hyprland-workspace-compactor.service"
+    rm -f "$CONFIG_DIR/systemd/user/graphical-session.target.wants/hyprland-workspace-compactor.service"
+    rm -f "$CONFIG_DIR/systemd/user/graphical-session.target.wants/hyprland-bt-battery.service"
+
+    # dconf shutdown timeout drop-in to prevent 45s hangs on logout
+    mkdir -p "$CONFIG_DIR/systemd/user/dconf.service.d"
+    cat << 'EOF' > "$CONFIG_DIR/systemd/user/dconf.service.d/timeout.conf"
+[Service]
+TimeoutStopSec=2s
+EOF
 
     if [[ "$HYBRID_GPU" -eq 1 ]]; then
         deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"
@@ -479,10 +498,6 @@ deploy_system() {
 
     local env_dir="/etc/environment.d"
     mkdir -p "$env_dir"
-
-    cp "$SCRIPT_DIR/system/environment.d/20-gtk-theme.conf" "$env_dir/20-gtk-theme.conf"
-    chmod 644 "$env_dir/20-gtk-theme.conf"
-    log_pass "Deployed system-wide GTK theme environment: $env_dir/20-gtk-theme.conf"
 
     if [[ "$HYBRID_GPU" -eq 1 ]]; then
         local env_target="$env_dir/10-vulkan-hybrid.conf"
