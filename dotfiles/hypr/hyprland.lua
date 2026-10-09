@@ -101,6 +101,9 @@ hl.on("hyprland.start", function ()
 
     -- File manager pre-warmed background service (eliminates cold-start latency)
     hl.exec_cmd("nautilus --gapplication-service")
+
+    -- Session teardown listener (ensures systemd graphical session stops cleanly on exit)
+    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/session_teardown_listener.py")
 end)
 
 --------------------------------------------------------------------------------
@@ -290,7 +293,7 @@ hl.bind(mainMod .. " + F",             hl.dsp.window.fullscreen({ action = "togg
 hl.bind("F11",                         hl.dsp.window.fullscreen({ action = "toggle", mode = "fullscreen" }))
 hl.bind(mainMod .. " + P",             hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + S",             hl.dsp.layout("togglesplit"))
-hl.bind(mainMod .. " + SHIFT + M",     hl.dsp.exit())
+hl.bind(mainMod .. " + SHIFT + M",     hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/exit.sh"))
 
 -- Focus navigation (Vim & Arrow keys)
 hl.bind(mainMod .. " + left",          hl.dsp.focus({ direction = "left" }))

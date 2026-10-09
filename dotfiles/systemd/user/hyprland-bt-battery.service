@@ -1,7 +1,7 @@
 [Unit]
 Description=Bluetooth Device Battery to Alias Synchronizer
-PartOf=graphical-session.target
-After=graphical-session.target bluetooth.target
+PartOf=hyprland-session.target
+After=hyprland-session.target bluetooth.target
 
 [Service]
 Type=simple
@@ -10,4 +10,4 @@ Restart=always
 RestartSec=2s
 
 [Install]
-WantedBy=graphical-session.target
+WantedBy=hyprland-session.target
