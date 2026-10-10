@@ -80,3 +80,97 @@ if command -v hyprctl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
     fi
 fi
 
+# 4. Synchronize btop theme and notify running instances
+if [ -f "$GTK4_CSS" ]; then
+    python3 - <<'PY' 2>/dev/null || true
+import os, re
+
+config_dir = os.path.expanduser(os.environ.get("XDG_CONFIG_HOME", "~/.config"))
+gtk4_css = os.path.join(config_dir, "gtk-4.0", "noctalia.css")
+ghostty_theme = os.path.join(config_dir, "ghostty", "themes", "noctalia")
+btop_theme_dir = os.path.join(config_dir, "btop", "themes")
+btop_theme_file = os.path.join(btop_theme_dir, "noctalia.theme")
+
+if not os.path.isfile(gtk4_css):
+    raise SystemExit(0)
+
+with open(gtk4_css, "r", encoding="utf-8") as f:
+    css = f.read()
+
+def get_css_color(name, default="#888888"):
+    m = re.search(rf'@define-color\s+{name}\s+#([0-9a-fA-F]{{6}});', css)
+    return f"#{m.group(1)}" if m else default
+
+accent = get_css_color("accent_color", "#52d7f0")
+bg = get_css_color("window_bg_color", "#0f131c")
+fg = get_css_color("window_fg_color", "#dfe2ef")
+card_bg = get_css_color("card_bg_color", "#1b2029")
+
+palette = {}
+if os.path.isfile(ghostty_theme):
+    with open(ghostty_theme, "r", encoding="utf-8") as f:
+        for line in f:
+            m = re.match(r'palette\s*=\s*(\d+)=#?([0-9a-fA-F]{6})', line)
+            if m:
+                palette[int(m.group(1))] = f"#{m.group(2)}"
+
+p2 = palette.get(2, accent)
+p3 = palette.get(3, accent)
+p4 = palette.get(4, accent)
+p8 = palette.get(8, "#8891a5")
+p0 = palette.get(0, "#3e4759")
+
+btop_content = f"""# btop theme synchronized with active Noctalia palette
+
+theme[main_bg]="{bg}"
+theme[main_fg]="{fg}"
+theme[title]="{accent}"
+theme[hi_fg]="{p4}"
+theme[selected_bg]="{card_bg}"
+theme[selected_fg]="{fg}"
+theme[inactive_fg]="{p8}"
+theme[proc_misc]="{p3}"
+theme[cpu_box]="{p8}"
+theme[mem_box]="{p8}"
+theme[net_box]="{p8}"
+theme[proc_box]="{p8}"
+theme[div_line]="{p0}"
+theme[temp_start]="{accent}"
+theme[temp_mid]="{p3}"
+theme[temp_end]="{p4}"
+theme[cpu_start]="{accent}"
+theme[cpu_mid]="{p3}"
+theme[cpu_end]="{p4}"
+theme[free_start]="{accent}"
+theme[free_mid]="{p3}"
+theme[free_end]="{p4}"
+theme[cached_start]="{accent}"
+theme[cached_mid]="{p3}"
+theme[cached_end]="{p4}"
+theme[available_start]="{accent}"
+theme[available_mid]="{p3}"
+theme[available_end]="{p4}"
+theme[used_start]="{accent}"
+theme[used_mid]="{p3}"
+theme[used_end]="{p4}"
+theme[download_start]="{accent}"
+theme[download_mid]="{p3}"
+theme[download_end]="{p4}"
+theme[upload_start]="{accent}"
+theme[upload_mid]="{p3}"
+theme[upload_end]="{p4}"
+"""
+
+os.makedirs(btop_theme_dir, exist_ok=True)
+with open(btop_theme_file, "w", encoding="utf-8") as f:
+    f.write(btop_content)
+PY
+    if pgrep -x btop >/dev/null 2>&1; then
+        pkill -SIGUSR2 -x btop || true
+    fi
+fi
+
+# 5. Broadcast SIGUSR1 to active Neovim instances for live palette and transparency refresh
+pkill -SIGUSR1 -x nvim 2>/dev/null || pkill -SIGUSR1 nvim 2>/dev/null || true
+
+
