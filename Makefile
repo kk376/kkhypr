@@ -40,8 +40,6 @@ status:
 	@ls -la ~/.config/noctalia/config.toml 2>/dev/null || echo "noctalia config.toml: not linked"
 	@ls -la ~/.config/ghostty/config.ghostty 2>/dev/null || echo "ghostty config.ghostty: not linked"
 	@ls -la ~/.config/ghostty/gtk.css 2>/dev/null || echo "ghostty gtk.css: not linked"
-	@ls -la ~/.config/foot/foot.ini 2>/dev/null || echo "foot.ini: not linked"
-	@ls -la ~/.tmux.conf 2>/dev/null || echo ".tmux.conf: not linked"
 	@ls -la ~/.config/wireplumber/wireplumber.conf.d/50-bluez.conf 2>/dev/null || echo "50-bluez.conf: not linked"
 	@ls -la ~/.config/nvim/lua/plugins/colorscheme.lua 2>/dev/null || echo "nvim: not linked"
 	@ls -la ~/.config/Code/User/settings.json 2>/dev/null || echo "Code settings: not linked"

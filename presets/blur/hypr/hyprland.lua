@@ -85,8 +85,8 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME ADW_DISABLE_PORTAL LD_PRELOAD")
     hl.exec_cmd("systemctl --user start hyprland-session.target")
 
-    -- Authentication agent
-    hl.exec_cmd("/usr/libexec/hyprpolkitagent")
+    -- Authentication agent (handled by Noctalia built-in polkit agent)
+    -- hl.exec_cmd("/usr/libexec/hyprpolkitagent")
 
     -- Noctalia desktop shell (bar, launcher, notifications, widgets)
     hl.exec_cmd("noctalia")

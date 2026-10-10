@@ -12,10 +12,6 @@ GTK_CSS_FILE = CONFIG_DIR / "gtk.css"
 CUSTOM_THEMES_DIR = CONFIG_DIR / "themes"
 SYSTEM_THEMES_DIR = Path("/usr/share/ghostty/themes")
 
-FOOT_DIR = Path.home() / ".config" / "foot"
-FOOT_FILE = FOOT_DIR / "foot.ini"
-FOOT_THEMES_DIR = FOOT_DIR / "themes"
-
 def get_custom_themes():
     if not CUSTOM_THEMES_DIR.exists():
         return []
@@ -134,85 +130,7 @@ def apply_theme(theme_name):
     except Exception:
         subprocess.run(["pkill", "-SIGUSR2", "ghostty"], check=False)
 
-    # Sync Foot theme
-    sync_foot_theme(theme_name)
-
     print(f"Theme switched to: {theme_name} (bg: {bg_hex}, opacity: {opacity})")
-
-def sync_foot_theme(theme_name):
-    FOOT_THEMES_DIR.mkdir(parents=True, exist_ok=True)
-    slug = re.sub(r"[^a-zA-Z0-9_-]+", "-", theme_name.strip().lower()).strip("-")
-
-    if slug == "noctalia":
-        foot_theme_name = "noctalia"
-    else:
-        foot_custom = FOOT_THEMES_DIR / slug
-        foot_sys = Path("/usr/share/foot/themes") / slug
-        if foot_custom.is_file():
-            foot_theme_name = slug
-        elif foot_sys.is_file():
-            foot_theme_name = slug
-        else:
-            text = ""
-            for base_dir in [CUSTOM_THEMES_DIR, SYSTEM_THEMES_DIR]:
-                candidate = base_dir / theme_name
-                if candidate.is_file():
-                    text = candidate.read_text(encoding="utf-8", errors="ignore")
-                    break
-
-            if text:
-                foot_lines = ["[colors-dark]"]
-                m_fg = re.search(r"^[ \t]*foreground[ \t]*=[ \t]*#?([0-9a-fA-F]+)", text, re.MULTILINE)
-                m_bg = re.search(r"^[ \t]*background[ \t]*=[ \t]*#?([0-9a-fA-F]+)", text, re.MULTILINE)
-                if m_fg:
-                    foot_lines.append(f"foreground={m_fg.group(1)}")
-                if m_bg:
-                    foot_lines.append(f"background={m_bg.group(1)}")
-
-                palettes = dict(re.findall(r"^[ \t]*palette[ \t]*=[ \t]*([0-9]+)=#?([0-9a-fA-F]+)", text, re.MULTILINE))
-                for i in range(8):
-                    if str(i) in palettes:
-                        foot_lines.append(f"regular{i}={palettes[str(i)]}")
-                for i in range(8):
-                    if str(i + 8) in palettes:
-                        foot_lines.append(f"bright{i}={palettes[str(i + 8)]}")
-
-                m_sbg = re.search(r"^[ \t]*selection-background[ \t]*=[ \t]*#?([0-9a-fA-F]+)", text, re.MULTILINE)
-                m_sfg = re.search(r"^[ \t]*selection-foreground[ \t]*=[ \t]*#?([0-9a-fA-F]+)", text, re.MULTILINE)
-                if m_sfg:
-                    foot_lines.append(f"selection-foreground={m_sfg.group(1)}")
-                if m_sbg:
-                    foot_lines.append(f"selection-background={m_sbg.group(1)}")
-
-                m_cur = re.search(r"^[ \t]*cursor-color[ \t]*=[ \t]*#?([0-9a-fA-F]+)", text, re.MULTILINE)
-                m_ctext = re.search(r"^[ \t]*cursor-text[ \t]*=[ \t]*#?([0-9a-fA-F]+)", text, re.MULTILINE)
-                if m_cur and m_ctext:
-                    foot_lines.append(f"cursor={m_ctext.group(1)} {m_cur.group(1)}")
-                elif m_cur:
-                    foot_lines.append(f"cursor={m_cur.group(1)}")
-
-                target_file = FOOT_THEMES_DIR / slug
-                target_file.write_text("\n".join(foot_lines) + "\n", encoding="utf-8")
-                foot_theme_name = slug
-            else:
-                foot_theme_name = "noctalia"
-
-    if FOOT_FILE.is_file():
-        content = FOOT_FILE.read_text(encoding="utf-8")
-        if re.search(r"^[ \t]*include[ \t]*=", content, re.MULTILINE):
-            content = re.sub(
-                r"^[ \t]*include[ \t]*=.*$",
-                f"include=~/.config/foot/themes/{foot_theme_name}",
-                content,
-                flags=re.MULTILINE,
-            )
-        else:
-            content = f"[main]\ninclude=~/.config/foot/themes/{foot_theme_name}\n" + content
-        FOOT_FILE.write_text(content, encoding="utf-8")
-
-    reloader = shutil.which("foot-theme-reload") or (Path.home() / ".local" / "bin" / "foot-theme-reload")
-    if reloader and Path(str(reloader)).is_file():
-        subprocess.run([str(reloader), foot_theme_name], capture_output=True, check=False)
 
 def main():
     args = sys.argv[1:]
