@@ -153,6 +153,8 @@ check_dependencies() {
     check_binary "hyprland" "true" || ((errors++))
     check_binary "noctalia" "true" || ((errors++))
     check_binary "ghostty" "true" || ((errors++))
+    check_binary "foot" "false" || true
+    check_binary "tmux" "false" || true
     check_binary "hypridle" "true" || ((errors++))
     check_binary "hyprlock" "true" || ((errors++))
     check_binary "hyprpaper" "true" || ((errors++))
@@ -330,9 +332,10 @@ deploy_configurations() {
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/compact_workspaces.py" "$CONFIG_DIR/hypr/scripts/compact_workspaces.py"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/screenshot.sh" "$CONFIG_DIR/hypr/scripts/screenshot.sh"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/bt_battery_sync.py" "$CONFIG_DIR/hypr/scripts/bt_battery_sync.py"
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/app_menu.sh" "$CONFIG_DIR/hypr/scripts/app_menu.sh"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/exit.sh" "$CONFIG_DIR/hypr/scripts/exit.sh"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/session_teardown_listener.py" "$CONFIG_DIR/hypr/scripts/session_teardown_listener.py"
-    chmod +x "$SCRIPT_DIR/dotfiles/hypr/scripts/exit.sh" "$SCRIPT_DIR/dotfiles/hypr/scripts/session_teardown_listener.py"
+    chmod +x "$SCRIPT_DIR/dotfiles/hypr/scripts/app_menu.sh" "$SCRIPT_DIR/dotfiles/hypr/scripts/exit.sh" "$SCRIPT_DIR/dotfiles/hypr/scripts/session_teardown_listener.py"
 
     # Noctalia desktop shell
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
@@ -394,6 +397,8 @@ EOF
 
     # Modular Application Deployment
     deploy_app "ghostty" "Ghostty Terminal" _deploy_ghostty
+    deploy_app "foot" "Foot Terminal" _deploy_foot
+    deploy_app "tmux" "Tmux Multiplexer" _deploy_tmux
     deploy_app "btop" "btop System Monitor" _deploy_btop
     deploy_app "nvim" "Neovim" _deploy_nvim
     deploy_app "zed" "Zed Editor" _deploy_zed
@@ -409,6 +414,17 @@ _deploy_ghostty() {
     mkdir -p "$LOCAL_BIN"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/ghostty-theme"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/term-theme"
+}
+
+_deploy_foot() {
+    deploy_link "$SCRIPT_DIR/dotfiles/foot/foot.ini" "$CONFIG_DIR/foot/foot.ini"
+    mkdir -p "$LOCAL_BIN"
+    deploy_link "$SCRIPT_DIR/dotfiles/foot/scripts/foot-theme-reload" "$LOCAL_BIN/foot-theme-reload"
+    chmod +x "$SCRIPT_DIR/dotfiles/foot/scripts/foot-theme-reload"
+}
+
+_deploy_tmux() {
+    deploy_link "$SCRIPT_DIR/dotfiles/tmux/tmux.conf" "$TARGET_HOME/.tmux.conf"
 }
 
 _deploy_btop() {

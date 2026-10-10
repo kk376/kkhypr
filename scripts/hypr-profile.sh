@@ -42,6 +42,7 @@ fi
 cp -f "$PRESET_DIR/btop/btop.conf" "$DOTFILES_DIR/btop/btop.conf"
 cp -f "$PRESET_DIR/ghostty/config.ghostty" "$DOTFILES_DIR/ghostty/config.ghostty"
 cp -f "$PRESET_DIR/ghostty/gtk.css" "$DOTFILES_DIR/ghostty/gtk.css"
+cp -f "$PRESET_DIR/foot/foot.ini" "$DOTFILES_DIR/foot/foot.ini"
 cp -f "$PRESET_DIR/hypr/hyprland.lua" "$DOTFILES_DIR/hypr/hyprland.lua"
 cp -f "$PRESET_DIR/noctalia/config.toml" "$DOTFILES_DIR/noctalia/config.toml"
 
@@ -108,8 +109,13 @@ else
     fi
 fi
 
-# Reload Ghostty terminal configuration
+# Reload Ghostty and Foot terminal configurations
 gdbus call --session --dest com.mitchellh.ghostty --object-path /com/mitchellh/ghostty --method org.gtk.Actions.Activate reload-config "[]" "{}" >/dev/null 2>&1 || pkill -SIGUSR2 ghostty 2>/dev/null || true
+if command -v foot-theme-reload >/dev/null 2>&1; then
+    foot-theme-reload >/dev/null 2>&1 || true
+elif [[ -x "$HOME/.local/bin/foot-theme-reload" ]]; then
+    "$HOME/.local/bin/foot-theme-reload" >/dev/null 2>&1 || true
+fi
 
 if [[ "$MODE" == "default" ]]; then
     printf "[PASS] Hyprland profile switched to: default (solid opaque, blur disabled)\n"
