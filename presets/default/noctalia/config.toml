@@ -394,7 +394,7 @@ launch_apps_custom_command = ""
 niri_overview_type_to_launch_enabled = false
 offline_mode = false
 password_style = "default"
-polkit_agent = false
+polkit_agent = true
 popup_borders = true
 popup_shadows = true
 screen_time_enabled = false
@@ -602,7 +602,6 @@ wallpaper_scheme = "m3-tonal-spot"
         "btop",
         "cava",
         "emacs",
-        "foot",
         "gtk3",
         "gtk4",
         "ghostty",
@@ -692,7 +691,6 @@ wallpaper_scheme = "m3-tonal-spot"
         "rio",
         "superfile",
         "surgedm",
-        "tmux",
         "yazi"
     ]
     enable_builtin_templates = true

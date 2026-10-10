@@ -80,10 +80,3 @@ if command -v hyprctl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
     fi
 fi
 
-# 4. Broadcast dynamic palette updates and transparency to Foot terminal
-if command -v foot-theme-reload >/dev/null 2>&1; then
-    foot-theme-reload || true
-elif [ -x "$HOME/.local/bin/foot-theme-reload" ]; then
-    "$HOME/.local/bin/foot-theme-reload" || true
-fi
-
