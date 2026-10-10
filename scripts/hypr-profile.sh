@@ -111,6 +111,10 @@ fi
 # Reload Ghostty terminal configuration
 gdbus call --session --dest com.mitchellh.ghostty --object-path /com/mitchellh/ghostty --method org.gtk.Actions.Activate reload-config "[]" "{}" >/dev/null 2>&1 || pkill -SIGUSR2 ghostty 2>/dev/null || true
 
+# Reload btop and Neovim
+pkill -SIGUSR2 -x btop >/dev/null 2>&1 || true
+pkill -SIGUSR1 -x nvim >/dev/null 2>&1 || true
+
 if [[ "$MODE" == "default" ]]; then
     printf "[PASS] Hyprland profile switched to: default (solid opaque, blur disabled)\n"
 else
