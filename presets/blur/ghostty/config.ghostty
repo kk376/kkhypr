@@ -13,7 +13,7 @@ adjust-box-thickness = 1
 adjust-icon-height = 20%
 
 # --- Window Styling & Layout ---
-background-opacity = 0.9
+background-opacity = 0.67
 window-padding-x = 16
 window-padding-y = 8,2
 window-padding-balance = false

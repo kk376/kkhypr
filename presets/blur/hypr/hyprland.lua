@@ -47,6 +47,7 @@ end
 -- XWayland fractional scale fix: prevent compositor upscaling, let toolkits handle DPI.
 hl.config({
     xwayland = {
+        enabled            = true,
         force_zero_scaling = true,
     },
 })
