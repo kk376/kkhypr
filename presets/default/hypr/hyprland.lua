@@ -232,6 +232,40 @@ hl.gesture({
 --------------------------------------------------------------------------------
 -- 9. Noctalia Layer & Window Rules
 --------------------------------------------------------------------------------
+hl.layer_rule({
+    name         = "noctalia-blur",
+    match        = { namespace = "noctalia.*" },
+    blur         = false,
+    blur_popups  = false,
+})
+
+hl.layer_rule({
+    name         = "noctalia-bar-blur",
+    match        = { namespace = "noctalia-bar-default" },
+    blur         = false,
+})
+
+-- Solid opaque rules (100% opaque surfaces, overrides blur profile opacity)
+hl.window_rule({
+    name    = "code-opacity",
+    match   = { class = "^(com\\.microsoft\\.VSCode|code|Code|code-oss|VSCodium|codium|com\\.vscodium\\.codium)$" },
+    opacity = "1.0 1.0",
+})
+hl.window_rule({
+    name    = "zed-opacity",
+    match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
+    opacity = "1.0 1.0",
+})
+hl.window_rule({
+    name    = "neovide-opacity",
+    match   = { class = "^(neovide)$" },
+    opacity = "1.0 1.0",
+})
+hl.window_rule({
+    name    = "noctalia-settings-opacity",
+    match   = { class = "^(dev\\.noctalia\\.Noctalia)$" },
+    opacity = "1.0 1.0",
+})
 
 -- Floating utility rules
 hl.window_rule({
