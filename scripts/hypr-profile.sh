@@ -9,15 +9,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
 
-# Resolve active repository root
-if [[ -d "$SCRIPT_DIR/../presets" ]]; then
+# Resolve active repository root only if executed directly within a repository tree
+if [[ -d "$SCRIPT_DIR/../presets" && -d "$SCRIPT_DIR/../dotfiles" ]]; then
     REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-elif [[ -d "$HOME/code/kkhypr/presets" ]]; then
-    REPO_DIR="$HOME/code/kkhypr"
-elif [[ -d "$HOME/code/dev-suite/hyprland-dots/presets" ]]; then
-    REPO_DIR="$HOME/code/dev-suite/hyprland-dots"
 else
-    REPO_DIR="$SCRIPT_DIR/.."
+    REPO_DIR=""
 fi
 
 MODE=""
