@@ -18,9 +18,10 @@ GhosttySplitTree,
 .surface,
 GhosttySurface,
 GtkGLArea {
-    background-color: #10131c;
+    background-color: transparent;
     background-image: none;
     border: none;
+    border-color: transparent;
     box-shadow: none;
     outline: none;
 }
@@ -37,9 +38,10 @@ revealer.bottom-bar.flat,
 .bottom-bar,
 .bottom-bar.raised,
 .bottom-bar.flat {
-    background-color: #10131c;
+    background-color: rgba(16, 19, 28, 0.9);
     background-image: none;
     border: none;
+    border-color: transparent;
     box-shadow: none;
     outline: none;
 }

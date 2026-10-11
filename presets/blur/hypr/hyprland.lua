@@ -126,7 +126,7 @@ hl.config({
 
     decoration = {
         rounding         = 8,
-        active_opacity   = 1.0,
+        active_opacity   = 0.95,
         inactive_opacity = 0.95,
 
         blur = {
@@ -261,22 +261,22 @@ hl.layer_rule({
 hl.window_rule({
     name    = "code-opacity",
     match   = { class = "^(com\\.microsoft\\.VSCode|code|Code|code-oss|VSCodium|codium|com\\.vscodium\\.codium)$" },
-    opacity = "0.90 0.90",
+    opacity = "0.95 0.95",
 })
 hl.window_rule({
     name    = "zed-opacity",
     match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
-    opacity = "0.90 0.90",
+    opacity = "0.95 0.95",
 })
 hl.window_rule({
     name    = "neovide-opacity",
     match   = { class = "^(neovide)$" },
-    opacity = "0.90 0.90",
+    opacity = "0.95 0.95",
 })
 hl.window_rule({
     name    = "noctalia-settings-opacity",
     match   = { class = "^(dev\\.noctalia\\.Noctalia)$" },
-    opacity = "0.92 0.88",
+    opacity = "0.95 0.95",
 })
 
 -- Floating utility rules

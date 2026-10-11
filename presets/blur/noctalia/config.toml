@@ -19,12 +19,12 @@ order = [ "default" ]
 
     [bar.default]
     auto_hide = false
-    background_opacity = 0.0
+    background_opacity = 0.95
     border = "outline"
     border_width = 0.0
-    capsule = true
+    capsule = false
     capsule_fill = "surface_variant"
-    capsule_opacity = 0.33
+    capsule_opacity = 0.95
     capsule_padding = 6.0
     capsule_radius = 16
     capsule_thickness = 0.85

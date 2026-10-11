@@ -136,7 +136,6 @@ kkhypr/
 │   └── systemd/
 │       └── user/             # Systemd user services and session targets
 ├── install.sh                # Automated, idempotent deployment script
-├── wallpapers/               # High-resolution desktop wallpapers
 └── system/
     ├── environment.d/
     │   └── 10-vulkan-hybrid.conf # System-wide GPU isolation rules

@@ -1,22 +1,25 @@
 -- ==============================================================================
 -- kkhypr: Production Hyprland Configuration (Lua)
--- Target: Universal / Hardware-Agnostic
+-- Hardware Target: AMD Ryzen 5 7535HS (Radeon 680M) + NVIDIA GeForce RTX 2050 Mobile
 -- Shell: Noctalia Desktop Shell v5
 -- Terminal: Ghostty
 -- ==============================================================================
 
 --------------------------------------------------------------------------------
--- 1. System Environment & Hardware Extension Hook
+-- 1. Hardware & Multi-GPU Zero-Freeze Architecture
 --------------------------------------------------------------------------------
-hl.env("PATH", os.getenv("HOME") .. "/.local/bin:" .. os.getenv("HOME") .. "/.cargo/bin:" .. (os.getenv("PATH") or "/usr/local/bin:/usr/bin"))
+-- Force Aquamarine/DRM to bind to the integrated AMD Radeon 680M (card1).
+-- The NVIDIA RTX 2050 (card0) remains secondary and sleeps in ACPI D3cold.
+-- Note: Aquamarine splits AQ_DRM_DEVICES on ':', so by-path PCI addresses with colons must not be used.
+hl.env("AQ_DRM_DEVICES", "/dev/dri/card1:/dev/dri/card0")
 
--- Load optional machine-specific hardware overrides (GPU isolation, custom DRM nodes, etc.)
-local device_override = os.getenv("HOME") .. "/.config/hypr/device.lua"
-local dev_file = io.open(device_override, "r")
-if dev_file then
-    dev_file:close()
-    pcall(dofile, device_override)
-end
+-- Prevent Vulkan ICD loader from scanning the sleeping NVIDIA card on desktop app launch.
+-- Eliminates the 2 to 3 second GTK4/Libadwaita application startup freeze.
+hl.env("VK_LOADER_DRIVERS_SELECT", "*radeon*")
+hl.env("LIBVA_DRIVER_NAME", "radeonsi")
+hl.env("VDPAU_DRIVER", "radeonsi")
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "mesa")
+hl.env("PATH", os.getenv("HOME") .. "/.local/bin:" .. os.getenv("HOME") .. "/.cargo/bin:" .. (os.getenv("PATH") or "/usr/local/bin:/usr/bin"))
 
 --------------------------------------------------------------------------------
 -- 2. Toolkit & Wayland Integration
@@ -55,8 +58,16 @@ hl.config({
 --------------------------------------------------------------------------------
 -- 3. Monitor Setup
 --------------------------------------------------------------------------------
--- Universal default: auto-detect preferred resolution, refresh rate, and positioning.
--- Machine-specific monitor rules or fractional scales can be defined in ~/.config/hypr/device.lua.
+-- Laptop primary eDP-1 display at native resolution and highest refresh rate.
+-- 1.25x fractional scale provides a comfortable 1536x864 equivalent UI space.
+-- Extra monitors fallback to preferred mode and auto position.
+hl.monitor({
+    output   = "eDP-1",
+    mode     = "1920x1080@144.42",
+    position = "0x0",
+    scale    = 1.25,
+})
+
 hl.monitor({
     output   = "",
     mode     = "preferred",
@@ -85,7 +96,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME ADW_DISABLE_PORTAL LD_PRELOAD")
     hl.exec_cmd("systemctl --user start hyprland-session.target")
 
-    -- Authentication agent (handled by Noctalia built-in polkit agent)
+    -- Authentication agent
     -- hl.exec_cmd("/usr/libexec/hyprpolkitagent")
 
     -- Noctalia desktop shell (bar, launcher, notifications, widgets)
@@ -101,7 +112,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("sh -c 'sleep 1 && noctalia msg caffeine-enable'")
 
     -- File manager pre-warmed background service (eliminates cold-start latency)
-    hl.exec_cmd("nautilus --gapplication-service")
+    -- hl.exec_cmd("nautilus --gapplication-service")
 
     -- Session teardown listener (ensures systemd graphical session stops cleanly on exit)
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/session_teardown_listener.py")
@@ -126,11 +137,21 @@ hl.config({
 
     decoration = {
         rounding         = 8,
-        active_opacity   = 1.0,
-        inactive_opacity = 1.0,
+        active_opacity   = 0.95,
+        inactive_opacity = 0.95,
 
         blur = {
-            enabled = false,
+            enabled           = true,
+            size              = 6,
+            passes            = 2,
+            vibrancy          = 0.20,
+            vibrancy_darkness = 0.05,
+            noise             = 0.0,
+            contrast          = 0.95,
+            brightness        = 0.90,
+            ignore_opacity    = true,
+            new_optimizations = true,
+            popups            = true,
         },
 
         shadow = {
@@ -232,6 +253,42 @@ hl.gesture({
 --------------------------------------------------------------------------------
 -- 9. Noctalia Layer & Window Rules
 --------------------------------------------------------------------------------
+hl.layer_rule({
+    name         = "noctalia-blur",
+    match        = { namespace = "noctalia.*" },
+    blur         = true,
+    ignore_alpha = 0.1,
+    blur_popups  = true,
+})
+
+hl.layer_rule({
+    name         = "noctalia-bar-blur",
+    match        = { namespace = "noctalia-bar-default" },
+    blur         = true,
+    ignore_alpha = 0.1,
+})
+
+-- Glassmorphism & opacity rules for editors (VSCode, VSCodium, Zed, Neovide)
+hl.window_rule({
+    name    = "code-opacity",
+    match   = { class = "^(com\\.microsoft\\.VSCode|code|Code|code-oss|VSCodium|codium|com\\.vscodium\\.codium)$" },
+    opacity = "0.95 0.95",
+})
+hl.window_rule({
+    name    = "zed-opacity",
+    match   = { class = "^(dev\\.zed\\.Zed|zed)$" },
+    opacity = "0.95 0.95",
+})
+hl.window_rule({
+    name    = "neovide-opacity",
+    match   = { class = "^(neovide)$" },
+    opacity = "0.95 0.95",
+})
+hl.window_rule({
+    name    = "noctalia-settings-opacity",
+    match   = { class = "^(dev\\.noctalia\\.Noctalia)$" },
+    opacity = "0.95 0.95",
+})
 
 -- Floating utility rules
 hl.window_rule({
