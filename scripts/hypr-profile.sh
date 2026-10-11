@@ -99,6 +99,10 @@ elif pgrep -x noctalia >/dev/null 2>&1; then
     noctalia msg dock-reload >/dev/null 2>&1 || true
     noctalia msg templates-apply >/dev/null 2>&1 || true
     noctalia msg bar-show >/dev/null 2>&1 || true
+    if command -v hyprctl >/dev/null 2>&1 && hyprctl clients 2>/dev/null | grep -q "class: dev\.noctalia\.Noctalia"; then
+        noctalia msg settings-close >/dev/null 2>&1 || true
+        noctalia msg settings-open >/dev/null 2>&1 || true
+    fi
 else
     # If not running, spawn cleanly under Hyprland compositor
     if command -v hyprctl >/dev/null 2>&1 && [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
