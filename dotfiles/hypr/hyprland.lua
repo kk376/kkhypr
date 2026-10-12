@@ -112,7 +112,7 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("sh -c 'sleep 1 && noctalia msg caffeine-enable'")
 
     -- File manager pre-warmed background service (eliminates cold-start latency)
-    -- hl.exec_cmd("nautilus --gapplication-service")
+    hl.exec_cmd("nautilus --gapplication-service")
 
     -- Session teardown listener (ensures systemd graphical session stops cleanly on exit)
     hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/session_teardown_listener.py")
