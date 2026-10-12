@@ -574,6 +574,7 @@ wallpaper_scheme = "m3-tonal-spot"
         "gtk3",
         "gtk4",
         "ghostty",
+        "foot",
         "helix",
         "hyprland",
         "kcolorscheme",
