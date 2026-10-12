@@ -67,7 +67,7 @@ hl.monitor({
 --------------------------------------------------------------------------------
 -- 4. Default Programs
 --------------------------------------------------------------------------------
-local terminal    = "ghostty"
+local terminal    = "foot"
 local fileManager = "nautilus --new-window"
 local browser     = "google-chrome"
 local menu          = "noctalia msg panel-toggle launcher"
@@ -301,6 +301,15 @@ hl.window_rule({
 hl.window_rule({
     name  = "hyprland-dialog-float",
     match = { class = "hyprland-dialog" },
+    float = true,
+})
+
+hl.window_rule({
+    name  = "ayugram-media-viewer-float",
+    match = {
+        class = "^(com\\.ayugram\\.desktop|org\\.telegram\\.desktop|AyuGram)$",
+        title = "^(Media viewer)$",
+    },
     float = true,
 })
 

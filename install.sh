@@ -152,7 +152,9 @@ check_dependencies() {
 
     check_binary "hyprland" "true" || ((errors++))
     check_binary "noctalia" "true" || ((errors++))
-    check_binary "ghostty" "true" || ((errors++))
+    check_binary "ghostty" "false" || true
+    check_binary "foot" "false" || true
+    check_binary "tmux" "false" || true
     check_binary "hypridle" "true" || ((errors++))
     check_binary "hyprlock" "true" || ((errors++))
     check_binary "hyprpaper" "true" || ((errors++))
@@ -395,6 +397,8 @@ EOF
 
     # Modular Application Deployment
     deploy_app "ghostty" "Ghostty Terminal" _deploy_ghostty
+    deploy_app "foot" "Foot Terminal" _deploy_foot
+    deploy_app "tmux" "tmux Terminal Multiplexer" _deploy_tmux
     deploy_app "btop" "btop System Monitor" _deploy_btop
     deploy_app "nvim" "Neovim" _deploy_nvim
     deploy_app "zed" "Zed Editor" _deploy_zed
@@ -410,6 +414,18 @@ _deploy_ghostty() {
     mkdir -p "$LOCAL_BIN"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/ghostty-theme"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/term-theme"
+}
+
+_deploy_foot() {
+    deploy_link "$SCRIPT_DIR/dotfiles/foot/foot.ini" "$CONFIG_DIR/foot/foot.ini"
+}
+
+_deploy_tmux() {
+    deploy_link "$SCRIPT_DIR/dotfiles/tmux/tmux.conf" "$CONFIG_DIR/tmux/tmux.conf"
+    if [[ -d "$SCRIPT_DIR/dotfiles/tmux/themes" ]]; then
+        mkdir -p "$CONFIG_DIR/tmux/themes"
+        deploy_link "$SCRIPT_DIR/dotfiles/tmux/themes/noctalia.conf" "$CONFIG_DIR/tmux/themes/noctalia.conf"
+    fi
 }
 
 _deploy_btop() {

@@ -69,6 +69,7 @@ if [[ -d "$DOTFILES_DIR" ]]; then
     cp -f "$PRESET_DIR/ghostty/gtk.css" "$DOTFILES_DIR/ghostty/gtk.css"
     cp -f "$PRESET_DIR/hypr/hyprland.lua" "$DOTFILES_DIR/hypr/hyprland.lua"
     cp -f "$PRESET_DIR/noctalia/config.toml" "$DOTFILES_DIR/noctalia/config.toml"
+    [[ -f "$PRESET_DIR/foot/foot.ini" && -d "$DOTFILES_DIR/foot" ]] && cp -f "$PRESET_DIR/foot/foot.ini" "$DOTFILES_DIR/foot/foot.ini"
 fi
 
 [[ -f "$PRESET_DIR/btop/btop.conf" ]] && cp -f "$PRESET_DIR/btop/btop.conf" "$CONFIG_DIR/btop/btop.conf"
@@ -77,6 +78,7 @@ fi
 [[ -f "$PRESET_DIR/ghostty/gtk.css" ]] && cp -f "$PRESET_DIR/ghostty/gtk.css" "$CONFIG_DIR/ghostty/gtk.css"
 [[ -f "$PRESET_DIR/hypr/hyprland.lua" ]] && cp -f "$PRESET_DIR/hypr/hyprland.lua" "$CONFIG_DIR/hypr/hyprland.lua"
 [[ -f "$PRESET_DIR/noctalia/config.toml" ]] && cp -f "$PRESET_DIR/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
+[[ -f "$PRESET_DIR/foot/foot.ini" ]] && cp -f "$PRESET_DIR/foot/foot.ini" "$CONFIG_DIR/foot/foot.ini"
 
 # Apply target opacity across configs if in blur mode
 if [[ "$MODE" == "blur" ]]; then
@@ -101,9 +103,15 @@ if [[ "$MODE" == "blur" ]]; then
         sed -i -E "s/opacity = \"[0-9.]+ [0-9.]+\"/opacity = \"$OPACITY $OPACITY\"/g" "$CONFIG_DIR/hypr/hyprland.lua"
     fi
 
+    # 4. Foot background opacity
+    if [[ -f "$CONFIG_DIR/foot/foot.ini" ]]; then
+        sed -i -E "s/(alpha\s*=\s*)[0-9.]+/\1$OPACITY/g" "$CONFIG_DIR/foot/foot.ini"
+    fi
+
     # Also sync into dotfiles if present
     if [[ -d "$DOTFILES_DIR" ]]; then
         [[ -f "$DOTFILES_DIR/ghostty/config.ghostty" ]] && sed -i -E "s/(background-opacity\s*=\s*)[0-9.]+/\1$OPACITY/" "$DOTFILES_DIR/ghostty/config.ghostty"
+        [[ -f "$DOTFILES_DIR/foot/foot.ini" ]] && sed -i -E "s/(alpha\s*=\s*)[0-9.]+/\1$OPACITY/g" "$DOTFILES_DIR/foot/foot.ini"
         if [[ -f "$DOTFILES_DIR/noctalia/config.toml" ]]; then
             sed -i -E "/\[bar\.default\]/,/\[/{ s/(background_opacity\s*=\s*)[0-9.]+/\1$OPACITY/; s/(capsule_opacity\s*=\s*)[0-9.]+/\1$OPACITY/ }" "$DOTFILES_DIR/noctalia/config.toml"
             sed -i -E "/\[dock\]/,/\[/{ s/(background_opacity\s*=\s*)[0-9.]+/\1$OPACITY/ }" "$DOTFILES_DIR/noctalia/config.toml"
@@ -178,6 +186,9 @@ fi
 
 # Reload Ghostty terminal configuration
 gdbus call --session --dest com.mitchellh.ghostty --object-path /com/mitchellh/ghostty --method org.gtk.Actions.Activate reload-config "[]" "{}" >/dev/null 2>&1 || pkill -SIGUSR2 ghostty 2>/dev/null || true
+
+# Signal Foot terminal instances
+pkill -SIGUSR1 -x foot 2>/dev/null || true
 
 # Reload btop and Neovim
 pkill -SIGUSR2 -x btop >/dev/null 2>&1 || true
