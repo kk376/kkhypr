@@ -18,8 +18,11 @@ The primary modifier key is `SUPER` (the Windows or Command key). All navigation
 | `SUPER + Z` | Zed Editor | Launch high-performance native Zed editor | `~/.local/bin/zed` |
 | `SUPER + B` | Web Browser | Launch Google Chrome browser | `google-chrome` |
 | `SUPER + N` | Control Center | Toggle Noctalia quick settings and notification center | `noctalia msg panel-toggle control-center` |
+| `SUPER + W` | Wallpaper Carousel | Toggle the Noctalia Wallpaper Carousel overlay | `noctalia msg plugin yngwe/wallpaperCarousel:service all toggle` |
 | `SUPER + SHIFT + C` | Clipboard Manager | Toggle Noctalia clipboard history overlay | `noctalia msg panel-toggle clipboard` |
 | `SUPER + Escape` | Session Lock | Lock screen immediately via loginctl | `loginctl lock-session` |
+
+`SUPER + W` requires the optional Wallpaper Carousel plugin. See [the Noctalia plugin setup](NOCTALIA_WALLPAPER_CAROUSEL.md) for installation and enablement steps.
 
 ---
 
