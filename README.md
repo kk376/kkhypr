@@ -242,7 +242,7 @@ sudo dnf copr enable -y lionheartp/Hyprland && sudo dnf copr enable -y scottames
 # Install core packages
 sudo dnf install -y hyprland xdg-desktop-portal-hyprland hyprpolkitagent hyprland-guiutils \
     hyprpaper hypridle hyprlock noctalia \
-    brightnessctl pipewire-utils grim slurp wl-clipboard ghostty
+    brightnessctl pipewire-utils grim slurp quickshell wl-clipboard ghostty
 
 ```
 
