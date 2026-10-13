@@ -46,6 +46,8 @@ Desktop surfaces, menus, status indicators, and notification popups are driven b
 * Vertical cell battery status glyphs with direct power-supply sysfs telemetry.
 * Live Bluetooth peripheral connection and battery percentage monitoring via D-Bus.
 
+The optional third-party [Wallpaper Carousel](https://github.com/motor-dev/wallpaperCarousel) plugin can be installed under Noctalia's local data directory. Its install, activation, wallpaper folder setup, and `SUPER + W` binding are documented in [docs/NOCTALIA_WALLPAPER_CAROUSEL.md](docs/NOCTALIA_WALLPAPER_CAROUSEL.md).
+
 ### 7. Dynamic Workspace Compaction
 In standard tiling environments, closing windows can leave orphaned or fragmented desktop numbers. The bundled compactor daemon (`dotfiles/hypr/scripts/compact_workspaces.py`) listens to Hyprland socket events and dynamically collapses open workspaces into a contiguous sequence.
 
@@ -87,6 +89,7 @@ kkhypr/
 │   ├── ARCHITECTURE.md       # Deep-dive system design and daemon architecture
 │   ├── HARDWARE_DRM.md       # Multi-GPU routing and D3cold power verification (optional)
 │   ├── KEYBINDINGS.md        # Canonical shortcuts reference card
+│   ├── NOCTALIA_WALLPAPER_CAROUSEL.md # Optional Noctalia wallpaper carousel plugin setup
 │   ├── flatpak-terminal-flicker.md # Flatpak terminal rendering notes
 │   └── hyprland-vrr.md       # Variable Refresh Rate (VRR) documentation
 ├── dotfiles/
@@ -191,6 +194,7 @@ The primary modifier key is `SUPER` (Windows key). See [docs/KEYBINDINGS.md](doc
 | `SUPER + Z` | Zed Editor | `~/.local/bin/zed` |
 | `SUPER + B` | Web Browser | `google-chrome` |
 | `SUPER + N` | Control Center | `noctalia msg panel-toggle control-center` |
+| `SUPER + W` | Wallpaper Carousel | `noctalia msg plugin yngwe/wallpaperCarousel:service all toggle` |
 | `SUPER + SHIFT + C` | Clipboard History | `noctalia msg panel-toggle clipboard` |
 | `SUPER + Escape` | Lock Screen | `loginctl lock-session` |
 
@@ -281,6 +285,8 @@ To deploy all dotfiles regardless of currently installed packages:
 ```
 
 Any pre-existing non-symlink configuration is safely backed up with a timestamped suffix (`.backup.YYYYMMDD_HHMMSS`).
+
+Wallpaper Carousel is an optional third-party Noctalia plugin and is installed separately from the dotfiles. Follow [docs/NOCTALIA_WALLPAPER_CAROUSEL.md](docs/NOCTALIA_WALLPAPER_CAROUSEL.md) to install and enable it; the `SUPER + W` binding is included in the Hyprland configuration and both appearance presets.
 
 ---
 
