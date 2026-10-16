@@ -13,10 +13,12 @@ Reproducible, high-performance, and modular Wayland desktop configuration for Fe
 
 ## Architecture and Core Design Decisions
 
-### 1. Hardware-Agnostic Foundation and Device Override Hook
-`kkhypr` runs out of the box on any display and GPU architecture (Intel, AMD, NVIDIA, desktop workstations, or laptops). Display output defaults to automatic preferred resolution and scaling.
+### 1. 100% Hardware-Agnostic Core and Modular Device Hook
+`kkhypr` runs out of the box on any display and GPU architecture (Intel, AMD, NVIDIA, desktop workstations, laptops, or virtual machines). Display output defaults to universal automatic preferred resolution and standard 1.0x scaling (`output = "", mode = "preferred", position = "auto", scale = 1`).
 
-For systems requiring machine-specific hardware tuning (such as dual-GPU DRM isolation, fixed refresh rates, or custom fractional scaling), `kkhypr` provides an extension hook in `dotfiles/hypr/hyprland.lua`:
+All graphics drivers and hardware devices rely on standard Linux kernel and Mesa auto-detection (Aquamarine DRM, Mesa GBM, and Vulkan ICD loader) with zero hardcoded vendor drivers or bus paths in core configuration.
+
+For systems requiring machine-specific hardware tuning (such as custom multi-monitor arrangements, fractional scaling, or dual-GPU power tuning on hybrid laptops), `kkhypr` provides an extension hook in `dotfiles/hypr/hyprland.lua`:
 ```lua
 local device_override = os.getenv("HOME") .. "/.config/hypr/device.lua"
 local dev_file = io.open(device_override, "r")
@@ -25,19 +27,9 @@ if dev_file then
     pcall(dofile, device_override)
 end
 ```
-Placing hardware definitions in `~/.config/hypr/device.lua` keeps the core repository completely portable and decoupled from local machine quirks.
+A template is provided in [`dotfiles/hypr/device.lua.example`](dotfiles/hypr/device.lua.example). Placing host definitions in `~/.config/hypr/device.lua` keeps the core repository completely portable and decoupled from local machine quirks.
 
-### 2. Multi-GPU Zero-Freeze Architecture
-To prevent Wayland compositor lockups and 2 to 3 second application startup freezes on hybrid AMD and NVIDIA laptops, Vulkan loaders are constrained to integrated graphics, and discrete GPUs sleep in ACPI D3cold:
-```ini
-# system/environment.d/10-vulkan-hybrid.conf
-VK_LOADER_DRIVERS_SELECT=*radeon*
-AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0
-LIBVA_DRIVER_NAME=radeonsi
-VDPAU_DRIVER=radeonsi
-```
-
-### 3. Native Noctalia Shell v5 C++ Integration
+### 2. Native Noctalia Shell v5 C++ Integration
 Desktop surfaces, menus, status indicators, and notification popups are driven natively by [Noctalia Desktop Shell v5](https://noctalia.dev) (rewritten in C++). Keybindings interface directly with Noctalia via native IPC (`noctalia msg`):
 * **Launcher**: `noctalia msg panel-toggle launcher` (`SUPER + Space`)
 * **Control Center**: `noctalia msg panel-toggle control-center` (`SUPER + S`)
@@ -46,12 +38,12 @@ Desktop surfaces, menus, status indicators, and notification popups are driven n
 * **Window Switcher**: `noctalia msg window-switcher hold` (`Alt + Tab`)
 * **Volume & Brightness**: Native OSD via `noctalia msg volume-up` / `brightness-up`
 
-### 4. Real-Time Palette Synchronization & GTK Live Reload
+### 3. Real-Time Palette Synchronization & GTK Live Reload
 All application color palettes are dynamically synchronized by Noctalia:
 * [`on-colors-changed.sh`](dotfiles/noctalia/scripts/on-colors-changed.sh) dispatches active palette updates to GTK 3/4, Chromium, KDE 6 applications (Dolphin via native D-Bus signals), and btop with file locking (`flock`) to prevent race conditions.
 * Real-time GTK stylesheet hot-reloading is achieved via [`libgtk-live-reload.c`](dotfiles/gtk/libgtk-live-reload.c).
 
-### 5. Separation of Concerns: Desktop vs Developer Tooling
+### 4. Separation of Concerns: Desktop vs Developer Tooling
 `kkhypr` focuses strictly on the Wayland desktop environment, compositor, shell, and terminal layers. Developer toolchains, code editors (Neovim, VS Code, Zed), and AI agent skills are maintained in the companion repository [dev-suite](https://github.com/kk376/dev-suite).
 
 ---
@@ -106,6 +98,7 @@ kkhypr/
 │   │   ├── noctalia.css
 │   │   └── settings.ini
 │   ├── hypr/
+│   │   ├── device.lua.example # Template for host-specific display/GPU overrides
 │   │   ├── hyprland.lua      # Master native Lua Hyprland configuration
 │   │   ├── hyprtoolkit.conf  # UI toolkit configuration
 │   │   └── noctalia.lua      # Noctalia border sync helper
@@ -123,9 +116,6 @@ kkhypr/
 │   └── wireplumber/
 │       └── wireplumber.conf.d/
 │           └── 50-bluez.conf # WirePlumber Bluetooth audio codec policy
-├── system/
-│   └── environment.d/
-│       └── 10-vulkan-hybrid.conf # Multi-GPU isolation environment drop-in
 └── install.sh                # Automated, idempotent deployment script
 ```
 
@@ -168,10 +158,10 @@ Apply the symlinks to `~/.config/`:
 make install
 ```
 
-To deploy optional hybrid GPU environment rules:
+To configure host-specific displays, scaling, or dual-GPU options, copy the template and edit:
 
 ```bash
-./install.sh --hybrid-gpu
+cp ~/.config/hypr/device.lua.example ~/.config/hypr/device.lua
 ```
 
 Any pre-existing non-symlink configuration is safely backed up with a timestamped suffix (`.backup.YYYYMMDD_HHMMSS`).

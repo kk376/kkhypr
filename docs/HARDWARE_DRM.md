@@ -22,45 +22,44 @@ Once awake, background polling often keeps the dGPU active, consuming 15 to 25 w
 
 ---
 
-## The kkhypr Solution
+## The kkhypr Solution: Modular Device Overrides
 
-`kkhypr` provides a multi-layer routing configuration located in `system/environment.d/10-vulkan-hybrid.conf`:
+Rather than hardcoding GPU vendor parameters into universal compositor dotfiles, `kkhypr` decouples hardware-specific environment overrides into `~/.config/hypr/device.lua` (see template `dotfiles/hypr/device.lua.example`):
 
-```ini
-# Explicit DRM device priority for Hyprland Aquamarine backend
-AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0
+```lua
+-- ~/.config/hypr/device.lua
 
-# Restrict Vulkan driver discovery to Radeon Mesa driver
-VK_LOADER_DRIVERS_SELECT=*radeon*
+-- Explicit DRM device priority for Hyprland Aquamarine backend
+-- Prioritize integrated GPU (e.g. card1) over secondary dGPU (card0)
+hl.env("AQ_DRM_DEVICES", "/dev/dri/card1:/dev/dri/card0")
 
-# Hardware acceleration and Mesa library bindings
-LIBVA_DRIVER_NAME=radeonsi
-VDPAU_DRIVER=radeonsi
-__GLX_VENDOR_LIBRARY_NAME=mesa
+-- Restrict desktop Vulkan driver discovery to integrated Mesa driver
+-- Prevents GTK4 and Chromium from probing sleeping NVIDIA cards
+hl.env("VK_LOADER_DRIVERS_SELECT", "*radeon*")
+
+-- Hardware acceleration and Mesa library bindings
+hl.env("LIBVA_DRIVER_NAME", "radeonsi")
+hl.env("VDPAU_DRIVER", "radeonsi")
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "mesa")
 ```
 
 ### Explanation of Rules
 
 1. **`AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0`**:
-   Instructs the Aquamarine backend to prioritize `card1` (AMD Radeon 680M) for primary presentation buffers, page flips, and monitor outputs. The NVIDIA card is only used as a secondary device when explicitly directed.
-   * Important: Aquamarine splits device strings by colon (`:`). Using PCI path identifiers like `/dev/dri/by-path/pci-0000:01:00.0-card` causes parsing failures due to internal colons. Direct card nodes (`/dev/dri/card1:/dev/dri/card0`) must be used.
+   Instructs the Aquamarine backend to prioritize `card1` (e.g. AMD Radeon or Intel iGPU) for primary presentation buffers, page flips, and monitor outputs. The discrete GPU is only used as a secondary device when explicitly directed.
+   * Important: Aquamarine splits device strings by colon (`:`). Direct card nodes (`/dev/dri/card1:/dev/dri/card0`) must be used.
 
 2. **`VK_LOADER_DRIVERS_SELECT=*radeon*`**:
-   The Vulkan Loader Specification supports `VK_LOADER_DRIVERS_SELECT` to filter active ICD filenames using glob patterns. Setting this variable to `*radeon*` ensures GTK4, Libadwaita, and browser engines only initialize `/usr/share/vulkan/icd.d/radeon_icd.x86_64.json`, preventing probes into `nvidia_icd.json`.
+   The Vulkan Loader Specification supports `VK_LOADER_DRIVERS_SELECT` to filter active ICD filenames using glob patterns. Setting this variable to your integrated driver (`*radeon*` or `*intel*`) ensures GTK4, Libadwaita, and browser engines only initialize integrated ICDs, preventing probes into `nvidia_icd.json`.
 
 ---
 
 ## Verifying Power State
 
-To verify that the NVIDIA dGPU is sleeping in D3cold during standard desktop use:
+To verify that your discrete GPU is sleeping in D3cold during standard desktop use, locate your dGPU PCI bus ID (via `lspci | grep -i 'vga\|3d'`) and check runtime power status:
 
 ```bash
-make status
-```
-
-Or query the kernel sysfs directly:
-
-```bash
+# Example for PCI address 0000:01:00.0:
 cat /sys/bus/pci/devices/0000:01:00.0/power/runtime_status
 ```
 

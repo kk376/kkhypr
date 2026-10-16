@@ -32,10 +32,10 @@ end
 ```
 When present, `~/.config/hypr/device.lua` can define explicit panel refresh rates, fractional scaling (e.g. 1.25x for 1080p 15.6" screens), or multi-GPU Aquamarine DRM device strings without modifying the upstream dotfiles.
 
-### C. Optional Hybrid GPU Isolation (AMD + NVIDIA Laptops)
-On hybrid laptops pairing an AMD iGPU with an NVIDIA dGPU, standard Vulkan and DRM probing can wake the sleeping NVIDIA controller from ACPI D3cold, causing 2 to 3 second application startup freezes.
+### C. Hardware Overrides & Multi-GPU Configuration
+`kkhypr` contains zero hardcoded vendor driver paths or GPU bus IDs in its master configuration. The Linux kernel, Mesa DRM, and Vulkan loader auto-detect display hardware across Intel, AMD, NVIDIA, and virtual machines.
 
-For systems subject to this behavior, running `./install.sh --hybrid-gpu` deploys `system/environment.d/10-vulkan-hybrid.conf` to isolate Vulkan discovery to the integrated Radeon processor and prioritize the AMD DRM node (`AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card0` and `VK_LOADER_DRIVERS_SELECT=*radeon*`). Full details are documented in [docs/HARDWARE_DRM.md](docs/HARDWARE_DRM.md).
+For hybrid laptops pairing integrated graphics with discrete GPUs, users who experience unexpected dGPU wakeups during desktop Vulkan or DRM scans can isolate rendering by defining environment variables in `~/.config/hypr/device.lua`. Full technical details and recipes are documented in [docs/HARDWARE_DRM.md](HARDWARE_DRM.md).
 
 ---
 
@@ -55,11 +55,7 @@ Hyprland 0.56 introduces native Lua configuration support, providing full progra
 * Centralized quick settings and notifications panel (`noctalia msg panel-toggle control-center`).
 * Native clipboard history overlay (`noctalia msg panel-toggle clipboard`).
 * Hardware OSD indicators for volume, microphone, and backlight brightness.
-
-### Custom Luau Plugins
-Custom widgets are located in `dotfiles/noctalia/plugins/custom_bar/`:
-* `laptop_battery.luau`: Native laptop battery cell telemetry with vertical fill icons.
-* `bt_battery.luau`: Bluetooth peripheral battery telemetry reading live status via D-Bus.
+* Built-in native C++ telemetry for BlueZ Bluetooth devices and power supplies.
 
 ---
 
@@ -73,8 +69,8 @@ When a palette (such as Catppuccin, Tokyo Night, or wallpaper-derived colors) is
 1. **Hyprland Compositor Borders**:
    Renders `$XDG_CONFIG_HOME/hypr/noctalia.lua`. The native compositor configuration `dotfiles/hypr/hyprland.lua` invokes `require("noctalia").apply_theme()`, instantly applying active and inactive window borders, group titles, and accent colors without restarting Hyprland.
 
-2. **Ghostty Terminal**:
-   Renders `/usr/share/noctalia/assets/templates/ghostty/ghostty` into `$XDG_CONFIG_HOME/ghostty/themes/noctalia`. The primary terminal configuration `dotfiles/ghostty/config.ghostty` references `theme = noctalia`, and running instances reload colors on the fly via D-Bus notifications.
+2. **Terminals (Ghostty, Kitty, Foot, tmux)**:
+   Renders template palettes for Ghostty, Kitty, Foot, and tmux. Running instances reload colors on the fly via D-Bus notifications and SIGUSR signals.
 
 3. **GTK 3, GTK 4, and Libadwaita Desktop Applications**:
    Renders `$XDG_CONFIG_HOME/gtk-3.0/noctalia.css` and `$XDG_CONFIG_HOME/gtk-4.0/noctalia.css`. Both `dotfiles/gtk-3.0/gtk.css` and `dotfiles/gtk-4.0/gtk.css` import this file directly, providing dynamic `@window_bg_color`, `@accent_color`, and `@headerbar_bg_color` values to all GTK applications, including GNOME Clocks, GNOME Calculator, and Nautilus.
@@ -83,17 +79,8 @@ When a palette (such as Catppuccin, Tokyo Night, or wallpaper-derived colors) is
    
    Direct GSettings accent color synchronization is enabled for Libadwaita applications by exporting `ADW_DISABLE_PORTAL=1`.
 
-4. **Web Browsers (Google Chrome and Brave Origin)**:
-   Chromium browsers operating under native GTK integration (`"system_theme": 1`) monitor D-Bus changes on `org.gnome.desktop.interface`. Noctalia triggers `sync-gtk-theme.sh` on `wallpaper_changed` and `colors_changed`, which computes the circular hue distance to the closest GNOME accent color (`blue`, `teal`, `green`, `yellow`, `orange`, `red`, `pink`, `purple`, `slate`) and sets `org.gnome.desktop.interface accent-color`. It also rapidly toggles `gtk-theme` to broadcast D-Bus change notifications, triggering live re-evaluation of frame and tab accents across running browser instances.
-
-5. **Zed Editor**:
-   Renders `$XDG_CONFIG_HOME/zed/themes/noctalia.json`, defining `Noctalia Dark` and `Noctalia Light`. Deployed via a filesystem hardlink to the repository dotfile so Linux inotify watchers on the themes directory fire immediately upon template generation, enabling instant live updates without requiring an editor restart. `dotfiles/zed/settings.json` activates these themes directly.
-
-6. **VS Code and VSCodium**:
-   Updates `NoctaliaTheme-color-theme.json` inside the installed Noctalia Theme extension. With `workbench.colorTheme` set to `NoctaliaTheme`, editor syntax and UI accents automatically reflect the active desktop palette.
-
-7. **Neovim and Terminal Utilities**:
-   Generates `$XDG_CONFIG_HOME/nvim/lua/matugen.lua` for base16 Neovim theming, as well as template outputs for Kitty, Alacritty, Foot, Fuzzel, Rofi, Fastfetch, Bat, and Yazi.
+4. **Web Browsers (Google Chrome and Chromium)**:
+   Chromium browsers operating under native GTK integration monitor D-Bus changes on `org.gnome.desktop.interface`. Noctalia's [`on-colors-changed.sh`](../dotfiles/noctalia/scripts/on-colors-changed.sh) syncs accent colors and signals browser frames for instant palette alignment.
 
 ---
 
@@ -122,5 +109,3 @@ sudo systemctl disable --now rsyslog.service
 
 Session initialization is managed through systemd user targets located in `dotfiles/systemd/user/`:
 * `hyprland-session.target`: Binds to `graphical-session.target` to ensure user services start in an orderly fashion after environment variables are imported to D-Bus and systemd.
-* `hyprland-workspace-compactor.service`: Supervised background service for the workspace compactor daemon.
-* `hyprland-bt-battery.service`: Supervised background service for the Bluetooth telemetry daemon.

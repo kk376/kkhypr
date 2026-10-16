@@ -1,0 +1,61 @@
+-- ==============================================================================
+-- kkhypr: Machine-Specific Device Overrides (device.lua.example)
+-- Copy this file to ~/.config/hypr/device.lua to apply host-specific tweaks.
+-- This file is gitignored and will not be overwritten by upstream updates.
+-- ==============================================================================
+
+--------------------------------------------------------------------------------
+-- 1. Custom Monitor Configurations
+--------------------------------------------------------------------------------
+
+-- Example A: High-DPI Laptop Internal Display Scaling
+-- hl.monitor({
+--     output   = "eDP-1",
+--     mode     = "preferred",
+--     position = "auto",
+--     scale    = 1.25,
+-- })
+
+-- Example B: Multi-Monitor Desktop Setup
+-- hl.monitor({
+--     output   = "DP-1",
+--     mode     = "2560x1440@144",
+--     position = "0x0",
+--     scale    = 1,
+-- })
+-- hl.monitor({
+--     output   = "HDMI-A-1",
+--     mode     = "1920x1080@60",
+--     position = "2560x0",
+--     scale    = 1,
+-- })
+
+--------------------------------------------------------------------------------
+-- 2. Hardware / Multi-GPU Environment Variables
+--------------------------------------------------------------------------------
+
+-- Example C: Hybrid Dual-GPU Laptops (AMD iGPU + NVIDIA dGPU)
+-- If your discrete GPU wakes unexpectedly during desktop Vulkan or DRM scans:
+-- hl.env("AQ_DRM_DEVICES", "/dev/dri/card1:/dev/dri/card0")
+-- hl.env("VK_LOADER_DRIVERS_SELECT", "*radeon*")
+-- hl.env("LIBVA_DRIVER_NAME", "radeonsi")
+-- hl.env("VDPAU_DRIVER", "radeonsi")
+-- hl.env("__GLX_VENDOR_LIBRARY_NAME", "mesa")
+
+-- Example D: NVIDIA Proprietary Driver Desktop Setup
+-- hl.env("LIBVA_DRIVER_NAME", "nvidia")
+-- hl.env("GBM_BACKEND", "nvidia-drm")
+-- hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+
+--------------------------------------------------------------------------------
+-- 3. Touchpad / Hardware Input Overrides
+--------------------------------------------------------------------------------
+
+-- Example E: Enable Natural Scrolling on Laptop Touchpad
+-- hl.config({
+--     input = {
+--         touchpad = {
+--             natural_scroll = true,
+--         },
+--     },
+-- })

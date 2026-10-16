@@ -21,9 +21,7 @@ DRY_RUN=0
 CHECK_ONLY=0
 FORCE=0
 DEPLOY_ALL=0
-HYBRID_GPU=0
 OPTIMIZE_SERVICES=0
-SYSTEM_INSTALL=0
 
 log_info() {
     printf "[INFO] %s\n" "$1"
@@ -50,9 +48,7 @@ Options:
   --dry-run            Simulate installation actions without modifying files
   --force              Overwrite existing targets if they are not matching symlinks
   --all                Deploy all application configurations regardless of installed binaries
-  --hybrid-gpu         Deploy optional AMD+NVIDIA hybrid GPU isolation environment
   --optimize-services  Disable redundant Fedora services (ABRT, Rsyslog) to free RAM
-  --system             Deploy system-wide environment drop-ins (requires sudo)
   --help               Show this help message
 EOF
     exit 0
@@ -77,16 +73,8 @@ while [[ $# -gt 0 ]]; do
             DEPLOY_ALL=1
             shift
             ;;
-        --hybrid-gpu)
-            HYBRID_GPU=1
-            shift
-            ;;
         --optimize-services)
             OPTIMIZE_SERVICES=1
-            shift
-            ;;
-        --system)
-            SYSTEM_INSTALL=1
             shift
             ;;
         --help|-h)
@@ -150,8 +138,8 @@ check_dependencies() {
     log_info "Verifying core dependencies..."
     local errors=0
 
-    check_binary "hyprland" "true" || ((errors++))
-    check_binary "noctalia" "true" || ((errors++))
+    check_binary "hyprland" "true" || ((errors = errors + 1))
+    check_binary "noctalia" "true" || ((errors = errors + 1))
     check_binary "ghostty" "false" || true
     check_binary "foot" "false" || true
     check_binary "tmux" "false" || true
@@ -167,6 +155,10 @@ check_dependencies() {
 
     if ((errors > 0)); then
         log_err "Dependency check failed with $errors missing required packages."
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            log_warn "Proceeding with dry-run simulation regardless of missing dependencies..."
+            return 0
+        fi
         return 1
     fi
     log_pass "All core binaries verified."
@@ -314,6 +306,9 @@ deploy_configurations() {
     fi
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprtoolkit.conf" "$CONFIG_DIR/hypr/hyprtoolkit.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/noctalia.lua" "$CONFIG_DIR/hypr/noctalia.lua"
+    if [[ ! -f "$CONFIG_DIR/hypr/device.lua" && ! -f "$CONFIG_DIR/hypr/device.lua.example" ]]; then
+        deploy_link "$SCRIPT_DIR/dotfiles/hypr/device.lua.example" "$CONFIG_DIR/hypr/device.lua.example"
+    fi
 
     # Noctalia desktop shell
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
@@ -350,11 +345,6 @@ deploy_configurations() {
 [Service]
 TimeoutStopSec=2s
 EOF
-
-    if [[ "$HYBRID_GPU" -eq 1 ]]; then
-        deploy_link "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$CONFIG_DIR/environment.d/10-vulkan-hybrid.conf"
-        log_pass "Deployed hybrid GPU isolation environment drop-in"
-    fi
 
     # Modular Terminal & Audio Deployment
     deploy_app "ghostty" "Ghostty Terminal" _deploy_ghostty
@@ -441,34 +431,7 @@ optimize_services() {
     fi
 }
 
-deploy_system() {
-    log_info "Deploying system-level environment drop-ins..."
-
-    if [[ "$EUID" -ne 0 ]]; then
-        log_err "System configuration requires root privileges. Please re-run with: sudo $0 --system"
-        return 1
-    fi
-
-    local env_dir="/etc/environment.d"
-    mkdir -p "$env_dir"
-
-    if [[ "$HYBRID_GPU" -eq 1 ]]; then
-        local env_target="$env_dir/10-vulkan-hybrid.conf"
-        cp "$SCRIPT_DIR/system/environment.d/10-vulkan-hybrid.conf" "$env_target"
-        chmod 644 "$env_target"
-        log_pass "Deployed system-wide Vulkan hybrid GPU isolation environment: $env_target"
-    fi
-
-    systemctl daemon-reload
-    log_pass "Reloaded systemd daemon"
-}
-
 main() {
-    if [[ "$SYSTEM_INSTALL" -eq 1 ]]; then
-        deploy_system
-        exit 0
-    fi
-
     log_info "Starting kkhypr universal installer (User: $TARGET_USER, Home: $TARGET_HOME)..."
 
     check_dependencies

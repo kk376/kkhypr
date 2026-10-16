@@ -1,6 +1,9 @@
 # Hyprland VRR / VFR Display Behaviour
 
-## Hardware
+> [!NOTE]
+> This document records an empirical diagnostic investigation analyzing Variable Refresh Rate (VRR) and Variable Frame Rate (VFR) panel behavior under Wayland compositors.
+
+## Test Environment Reference
 
 - Panel: AU Optronics 0xD0A2
 - Resolution: 1920x1080

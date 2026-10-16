@@ -7,7 +7,7 @@
 --------------------------------------------------------------------------------
 -- 1. Monitors & Hardware Overrides
 --------------------------------------------------------------------------------
--- Default fallback rule: auto detect preferred resolution and position
+-- Default universal monitor rule: auto detect preferred resolution, refresh rate, and position
 hl.monitor({
     output   = "",
     mode     = "preferred",
@@ -15,15 +15,7 @@ hl.monitor({
     scale    = 1,
 })
 
--- Default internal display rule for laptops
-hl.monitor({
-    output   = "eDP-1",
-    mode     = "preferred",
-    position = "auto",
-    scale    = 1.25,
-})
-
--- Device override hook: Loads machine-specific display, GPU, or scaling rules
+-- Device override hook: Loads host-specific display, scaling, or GPU rules from ~/.config/hypr/device.lua
 local device_override = os.getenv("HOME") .. "/.config/hypr/device.lua"
 local dev_file = io.open(device_override, "r")
 if dev_file then
@@ -41,18 +33,7 @@ local browser     = "flatpak run com.google.Chrome"
 --------------------------------------------------------------------------------
 -- 3. Environment Variables
 --------------------------------------------------------------------------------
--- Hardware & Multi-GPU Zero-Freeze Architecture
--- Force Aquamarine/DRM to bind to the integrated GPU (e.g. card1).
--- Secondary discrete GPUs (like NVIDIA) sleep in ACPI D3cold.
-hl.env("AQ_DRM_DEVICES", "/dev/dri/card1:/dev/dri/card0")
-
--- Prevent Vulkan ICD loader from scanning sleeping discrete GPUs on app launch.
--- Eliminates the 2 to 3 second GTK4/Libadwaita application startup freeze.
-hl.env("VK_LOADER_DRIVERS_SELECT", "*radeon*")
-hl.env("LIBVA_DRIVER_NAME", "radeonsi")
-hl.env("VDPAU_DRIVER", "radeonsi")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "mesa")
-
+-- Cursor Sizing
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 
@@ -67,8 +48,8 @@ end
 -- 4. Autostart
 --------------------------------------------------------------------------------
 hl.on("hyprland.start", function ()
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME ADW_DISABLE_PORTAL LD_PRELOAD")
-    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS VK_LOADER_DRIVERS_SELECT AQ_DRM_DEVICES LIBVA_DRIVER_NAME VDPAU_DRIVER __GLX_VENDOR_LIBRARY_NAME ADW_DISABLE_PORTAL LD_PRELOAD")
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS ADW_DISABLE_PORTAL LD_PRELOAD")
+    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE XDG_SESSION_CLASS ADW_DISABLE_PORTAL LD_PRELOAD")
     hl.exec_cmd("systemctl --user start hyprland-session.target")
     hl.exec_cmd("noctalia")
     hl.exec_cmd("sh -c 'sleep 1 && noctalia msg caffeine-enable'")
