@@ -99,16 +99,11 @@ When a palette (such as Catppuccin, Tokyo Night, or wallpaper-derived colors) is
 
 ## 5. Background Daemons and Services
 
-### Dynamic Workspace Compactor (`compact_workspaces.py`)
-In standard Hyprland setups, closing windows can leave sparse or empty workspaces (such as workspaces 1, 3, and 7 remaining open). `compact_workspaces.py` connects to Hyprland's UNIX event socket (`$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock`). Upon detecting `closewindow` or `destroyworkspace` events, the daemon shifts occupied workspaces downward into a contiguous sequence, preventing fragmented desktop states.
-
-### Bluetooth Battery Telemetry Daemon (`bt_battery_sync.py`)
-Listens to BlueZ D-Bus property changes for connected Bluetooth peripherals and updates telemetry state for the custom Noctalia top bar widget.
-
-### Idle and Power Daemons
-* `hypridle`: Handles screen dimming, lockscreen triggering via `hyprlock`, display power management signaling (DPMS off), and system suspend timeouts.
-* `hyprlock`: Fast, PAM-authenticated Wayland lockscreen with blurred screen background caching.
-* `hyprpaper`: Lightweight Wayland wallpaper utility handling smooth transitions.
+### Native Noctalia v5 Desktop Architecture
+Noctalia Desktop Shell v5 (rewritten natively in C++) acts as the central desktop environment daemon:
+* **Native IPC**: Listens on Wayland and UNIX sockets for `noctalia msg` calls (volume, brightness, screenshots, panels).
+* **System Telemetry**: Natively queries BlueZ D-Bus objects for connected peripheral battery states and Linux sysfs for power supply telemetry with zero external polling scripts.
+* **Wallpaper Engine**: Built-in GPU-accelerated wallpaper management with transitions (`disc`, `fade`, etc.).
 
 ### Fedora Background Service Optimization (ABRT and Rsyslog)
 Fedora Workstation defaults include background systemd services designed for corporate workstation crash collection and legacy syslog aggregation. In an optimized tiling compositor environment, these daemons introduce unnecessary resident memory consumption:

@@ -5,14 +5,7 @@
 ## Requirements
 
 - Noctalia v5 with wallpaper management enabled
-- Quickshell 0.3 or newer, with `qs` available on `PATH`
 - A wallpaper folder configured in Noctalia or in the plugin's settings
-
-Check the Quickshell version with:
-
-```sh
-qs --version
-```
 
 ## Install and enable
 
@@ -47,4 +40,4 @@ Press `SUPER + W` to toggle the carousel. The binding runs:
 noctalia msg plugin yngwe/wallpaperCarousel:service all toggle
 ```
 
-The same binding is present in `dotfiles/hypr/hyprland.lua` and in both appearance presets, so switching between `default` and `blur` preserves it. Reload Hyprland after installing or updating the dotfiles.
+The binding is configured in `dotfiles/hypr/hyprland.lua`. Reload Hyprland after installing or updating the dotfiles.

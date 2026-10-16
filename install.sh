@@ -155,9 +155,9 @@ check_dependencies() {
     check_binary "ghostty" "false" || true
     check_binary "foot" "false" || true
     check_binary "tmux" "false" || true
-    check_binary "hypridle" "true" || ((errors++))
-    check_binary "hyprlock" "true" || ((errors++))
-    check_binary "hyprpaper" "true" || ((errors++))
+    check_binary "hypridle" "false" || true
+    check_binary "hyprlock" "false" || true
+    check_binary "hyprpaper" "false" || true
     check_binary "hyprland-dialog" "false" || true
     check_binary "wpctl" "false" || true
     check_binary "brightnessctl" "false" || true
@@ -179,22 +179,30 @@ validate_configurations() {
     local noctalia_conf="$SCRIPT_DIR/dotfiles/noctalia/config.toml"
 
     if [[ -f "$hypr_lua" ]]; then
-        if hyprland --verify-config -c "$hypr_lua" >/dev/null 2>&1; then
-            log_pass "Hyprland Lua config validation passed: $hypr_lua"
+        if command -v hyprland >/dev/null 2>&1; then
+            if hyprland --verify-config -c "$hypr_lua" >/dev/null 2>&1; then
+                log_pass "Hyprland Lua config validation passed: $hypr_lua"
+            else
+                log_err "Hyprland Lua config validation failed: $hypr_lua"
+                hyprland --verify-config -c "$hypr_lua"
+                return 1
+            fi
         else
-            log_err "Hyprland Lua config validation failed: $hypr_lua"
-            hyprland --verify-config -c "$hypr_lua"
-            return 1
+            log_info "Hyprland binary not present; skipping live config verification."
         fi
     fi
 
     if [[ -f "$noctalia_conf" ]]; then
-        if noctalia config validate "$noctalia_conf" >/dev/null 2>&1; then
-            log_pass "Noctalia config validation passed: $noctalia_conf"
+        if command -v noctalia >/dev/null 2>&1; then
+            if noctalia config validate "$noctalia_conf" >/dev/null 2>&1; then
+                log_pass "Noctalia config validation passed: $noctalia_conf"
+            else
+                log_err "Noctalia config validation failed: $noctalia_conf"
+                noctalia config validate "$noctalia_conf"
+                return 1
+            fi
         else
-            log_err "Noctalia config validation failed: $noctalia_conf"
-            noctalia config validate "$noctalia_conf"
-            return 1
+            log_info "Noctalia binary not present; skipping live config verification."
         fi
     fi
     return 0
@@ -296,57 +304,22 @@ deploy_app() {
     fi
 }
 
-deploy_hypridle_config() {
-    local chassis="$1"
-    local target="$CONFIG_DIR/hypr/hypridle.conf"
-
-    if [[ "$chassis" == "laptop" ]]; then
-        deploy_link "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" "$target"
-    else
-        log_info "Configuring desktop power idle profile (without laptop backlight dimming)..."
-        if [[ "$DRY_RUN" -eq 1 ]]; then
-            log_info "[DRY-RUN] Generate desktop hypridle: $target"
-            return 0
-        fi
-        mkdir -p "$CONFIG_DIR/hypr"
-        sed '/# Idle dimming/,+4d' "$SCRIPT_DIR/dotfiles/hypr/hypridle.conf" > "$target.tmp"
-        mv "$target.tmp" "$target"
-        log_pass "Deployed desktop hypridle profile: $target"
-    fi
-}
-
 deploy_configurations() {
     log_info "Deploying core desktop and toolkit configurations..."
-    local chassis
-    chassis="$(detect_chassis)"
 
     # Core Hyprland ecosystem
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprland.lua" "$CONFIG_DIR/hypr/hyprland.lua"
     if [[ -L "$CONFIG_DIR/hypr/hyprland.conf" && ! -e "$CONFIG_DIR/hypr/hyprland.conf" ]]; then
         rm -f "$CONFIG_DIR/hypr/hyprland.conf"
     fi
-    deploy_hypridle_config "$chassis"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprlock.conf" "$CONFIG_DIR/hypr/hyprlock.conf"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprpaper.conf" "$CONFIG_DIR/hypr/hyprpaper.conf"
+    deploy_link "$SCRIPT_DIR/dotfiles/hypr/hyprtoolkit.conf" "$CONFIG_DIR/hypr/hyprtoolkit.conf"
     deploy_link "$SCRIPT_DIR/dotfiles/hypr/noctalia.lua" "$CONFIG_DIR/hypr/noctalia.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/compact_workspaces.py" "$CONFIG_DIR/hypr/scripts/compact_workspaces.py"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/screenshot.sh" "$CONFIG_DIR/hypr/scripts/screenshot.sh"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/bt_battery_sync.py" "$CONFIG_DIR/hypr/scripts/bt_battery_sync.py"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/app_menu.sh" "$CONFIG_DIR/hypr/scripts/app_menu.sh"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/exit.sh" "$CONFIG_DIR/hypr/scripts/exit.sh"
-    deploy_link "$SCRIPT_DIR/dotfiles/hypr/scripts/session_teardown_listener.py" "$CONFIG_DIR/hypr/scripts/session_teardown_listener.py"
-    chmod +x "$SCRIPT_DIR/dotfiles/hypr/scripts/app_menu.sh" "$SCRIPT_DIR/dotfiles/hypr/scripts/exit.sh" "$SCRIPT_DIR/dotfiles/hypr/scripts/session_teardown_listener.py"
 
     # Noctalia desktop shell
     deploy_link "$SCRIPT_DIR/dotfiles/noctalia/config.toml" "$CONFIG_DIR/noctalia/config.toml"
-    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/palettes/noctalia.json" "$CONFIG_DIR/noctalia/palettes/noctalia.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/colors.json" "$CONFIG_DIR/noctalia/colors.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/plugins" "$CONFIG_DIR/noctalia/plugins"
     mkdir -p "$CONFIG_DIR/noctalia/scripts"
-    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh" "$CONFIG_DIR/noctalia/scripts/sync-gtk-theme.sh"
-    chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/sync-gtk-theme.sh"
-    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/toggle-emoji.sh" "$CONFIG_DIR/noctalia/scripts/toggle-emoji.sh"
-    chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/toggle-emoji.sh"
+    deploy_link "$SCRIPT_DIR/dotfiles/noctalia/scripts/on-colors-changed.sh" "$CONFIG_DIR/noctalia/scripts/on-colors-changed.sh"
+    chmod +x "$SCRIPT_DIR/dotfiles/noctalia/scripts/on-colors-changed.sh"
 
     # GTK3 and GTK4 dynamic Noctalia theming
     deploy_link "$SCRIPT_DIR/dotfiles/gtk-3.0/gtk.css" "$CONFIG_DIR/gtk-3.0/gtk.css"
@@ -360,28 +333,16 @@ deploy_configurations() {
 
     # Compile and install GTK real-time stylesheet hot-reload shim
     mkdir -p "$LOCAL_LIB"
-    if command -v gcc >/dev/null 2>&1; then
+    if command -v gcc >/dev/null 2>&1 && [[ -f "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.c" ]]; then
         local cflags_libs
         cflags_libs=$(pkg-config --cflags --libs gio-2.0 glib-2.0 2>/dev/null || true)
         # shellcheck disable=SC2086
-        gcc -shared -fPIC -O2 -Wall -Wextra "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.c" -o "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" -ldl $cflags_libs 2>/dev/null || true
-    fi
-    if [[ -f "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" ]]; then
-        install -m 755 "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.so" "$LOCAL_LIB/libgtk-live-reload.so"
-        log_pass "Installed GTK live stylesheet reload shim ($LOCAL_LIB/libgtk-live-reload.so)"
+        gcc -shared -fPIC -O2 -Wall -Wextra "$SCRIPT_DIR/dotfiles/gtk/libgtk-live-reload.c" -o "$LOCAL_LIB/libgtk-live-reload.so" -ldl $cflags_libs 2>/dev/null || true
+        log_pass "Compiled and installed GTK live stylesheet reload shim ($LOCAL_LIB/libgtk-live-reload.so)"
     fi
 
-    # Systemd session target and isolated user services
+    # Systemd session target
     deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-session.target" "$CONFIG_DIR/systemd/user/hyprland-session.target"
-    deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-workspace-compactor.service" "$CONFIG_DIR/systemd/user/hyprland-workspace-compactor.service"
-    deploy_link "$SCRIPT_DIR/dotfiles/systemd/user/hyprland-bt-battery.service" "$CONFIG_DIR/systemd/user/hyprland-bt-battery.service"
-    mkdir -p "$CONFIG_DIR/systemd/user/hyprland-session.target.wants"
-    ln -sf "$CONFIG_DIR/systemd/user/hyprland-bt-battery.service" "$CONFIG_DIR/systemd/user/hyprland-session.target.wants/hyprland-bt-battery.service"
-
-    # Clean up compactor from wants (it is supervised directly by hyprland.lua) and legacy generic graphical-session wants
-    rm -f "$CONFIG_DIR/systemd/user/hyprland-session.target.wants/hyprland-workspace-compactor.service"
-    rm -f "$CONFIG_DIR/systemd/user/graphical-session.target.wants/hyprland-workspace-compactor.service"
-    rm -f "$CONFIG_DIR/systemd/user/graphical-session.target.wants/hyprland-bt-battery.service"
 
     # dconf shutdown timeout drop-in to prevent 45s hangs on logout
     mkdir -p "$CONFIG_DIR/systemd/user/dconf.service.d"
@@ -395,15 +356,12 @@ EOF
         log_pass "Deployed hybrid GPU isolation environment drop-in"
     fi
 
-    # Modular Application Deployment
+    # Modular Terminal & Audio Deployment
     deploy_app "ghostty" "Ghostty Terminal" _deploy_ghostty
+    deploy_app "kitty" "Kitty Terminal" _deploy_kitty
     deploy_app "foot" "Foot Terminal" _deploy_foot
     deploy_app "tmux" "tmux Terminal Multiplexer" _deploy_tmux
     deploy_app "btop" "btop System Monitor" _deploy_btop
-    deploy_app "nvim" "Neovim" _deploy_nvim
-    deploy_app "zed" "Zed Editor" _deploy_zed
-    deploy_app "code" "VS Code" _deploy_vscode
-    deploy_app "codium" "VSCodium" _deploy_vscodium
     deploy_app "wpctl" "WirePlumber Bluetooth Policy" _deploy_wireplumber
 }
 
@@ -414,6 +372,10 @@ _deploy_ghostty() {
     mkdir -p "$LOCAL_BIN"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/ghostty-theme"
     deploy_link "$SCRIPT_DIR/dotfiles/ghostty/scripts/ghostty-theme" "$LOCAL_BIN/term-theme"
+}
+
+_deploy_kitty() {
+    deploy_link "$SCRIPT_DIR/dotfiles/kitty/kitty.conf" "$CONFIG_DIR/kitty/kitty.conf"
 }
 
 _deploy_foot() {
@@ -430,32 +392,6 @@ _deploy_tmux() {
 
 _deploy_btop() {
     deploy_link "$SCRIPT_DIR/dotfiles/btop/btop.conf" "$CONFIG_DIR/btop/btop.conf"
-}
-
-_deploy_nvim() {
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/init.lua" "$CONFIG_DIR/nvim/init.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lazy-lock.json" "$CONFIG_DIR/nvim/lazy-lock.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/lazy.lua" "$CONFIG_DIR/nvim/lua/config/lazy.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/options.lua" "$CONFIG_DIR/nvim/lua/config/options.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/config/keymaps.lua" "$CONFIG_DIR/nvim/lua/config/keymaps.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/colorscheme.lua" "$CONFIG_DIR/nvim/lua/plugins/colorscheme.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/treesitter.lua" "$CONFIG_DIR/nvim/lua/plugins/treesitter.lua"
-    deploy_link "$SCRIPT_DIR/dotfiles/nvim/lua/plugins/base16.lua" "$CONFIG_DIR/nvim/lua/plugins/base16.lua"
-}
-
-_deploy_zed() {
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/settings.json" "$CONFIG_DIR/zed/settings.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/keymap.json" "$CONFIG_DIR/zed/keymap.json"
-    deploy_link "$SCRIPT_DIR/dotfiles/zed/tasks.json" "$CONFIG_DIR/zed/tasks.json"
-    deploy_hard_link "$SCRIPT_DIR/dotfiles/zed/themes/noctalia.json" "$CONFIG_DIR/zed/themes/noctalia.json"
-}
-
-_deploy_vscode() {
-    deploy_link "$SCRIPT_DIR/dotfiles/vscode/settings.json" "$CONFIG_DIR/Code/User/settings.json"
-}
-
-_deploy_vscodium() {
-    deploy_link "$SCRIPT_DIR/dotfiles/vscodium/settings.json" "$CONFIG_DIR/VSCodium/User/settings.json"
 }
 
 _deploy_wireplumber() {
@@ -545,7 +481,6 @@ main() {
     fi
 
     deploy_configurations
-    deploy_appearance_profiles
 
     if [[ "$OPTIMIZE_SERVICES" -eq 1 ]]; then
         optimize_services
@@ -553,58 +488,6 @@ main() {
 
     log_pass "Deployment finished successfully."
     log_info "To test Hyprland, log out and select 'Hyprland' in your display manager session menu."
-}
-
-deploy_appearance_profiles() {
-    log_info "Deploying hypr-default and hypr-blur profile switchers..."
-    mkdir -p "$LOCAL_BIN"
-
-    deploy_link "$SCRIPT_DIR/scripts/hypr-profile.sh" "$LOCAL_BIN/hypr-profile.sh"
-
-    cat << 'EOF' > "$LOCAL_BIN/hypr-default"
-#!/usr/bin/env bash
-exec hypr-profile.sh default "$@"
-EOF
-    chmod +x "$LOCAL_BIN/hypr-default"
-
-    cat << 'EOF' > "$LOCAL_BIN/hypr-blur"
-#!/usr/bin/env bash
-exec hypr-profile.sh blur "$@"
-EOF
-    chmod +x "$LOCAL_BIN/hypr-blur"
-
-    # Shell aliases deployment across bash, zsh, and fish
-    local bashrc="$TARGET_HOME/.bashrc"
-    if [[ -L "$bashrc" && ! -e "$bashrc" ]]; then
-        rm -f "$bashrc"
-        if [[ -f /etc/skel/.bashrc ]]; then
-            cp /etc/skel/.bashrc "$bashrc"
-        else
-            touch "$bashrc"
-        fi
-    fi
-    if [[ -f "$bashrc" ]]; then
-        if ! grep -q "alias hypr-default=" "$bashrc"; then
-            printf "\n# Hyprland appearance profile switchers\nalias hypr-default='hypr-profile.sh default'\nalias hypr-blur='hypr-profile.sh blur'\n" >> "$bashrc"
-            log_pass "Configured aliases in: $bashrc"
-        fi
-    fi
-
-    local zshrc="$TARGET_HOME/.zshrc"
-    if [[ -f "$zshrc" ]]; then
-        if ! grep -q "alias hypr-default=" "$zshrc"; then
-            printf "\n# Hyprland appearance profile switchers\nalias hypr-default='hypr-profile.sh default'\nalias hypr-blur='hypr-profile.sh blur'\n" >> "$zshrc"
-            log_pass "Configured aliases in: $zshrc"
-        fi
-    fi
-
-    local fish_conf="$CONFIG_DIR/fish/config.fish"
-    if [[ -f "$fish_conf" ]]; then
-        if ! grep -q "alias hypr-default" "$fish_conf"; then
-            printf "\n# Hyprland appearance profile switchers\nalias hypr-default 'hypr-profile.sh default'\nalias hypr-blur 'hypr-profile.sh blur'\n" >> "$fish_conf"
-            log_pass "Configured aliases in: $fish_conf"
-        fi
-    fi
 }
 
 main

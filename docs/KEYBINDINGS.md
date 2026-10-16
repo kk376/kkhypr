@@ -77,20 +77,15 @@ Workspaces 1 through 10 are bound directly to numeric keys:
 | `SUPER + SHIFT + 1` through `SUPER + SHIFT + 9` | Move focused window to workspace 1 through 9 |
 | `SUPER + SHIFT + 0` | Move focused window to workspace 10 |
 
-Note: The dynamic workspace compactor daemon runs continuously in the background. When all windows on an intermediate workspace are closed, workspaces are automatically renumbered to preserve a clean contiguous sequence.
-
----
-
 ## 6. Screenshots
 
-Screenshots are powered by `grim`, `slurp`, and the customized helper script at `dotfiles/hypr/scripts/screenshot.sh`:
+Screenshots are driven natively via Noctalia Desktop Shell v5's built-in screenshot engine:
 
-| Keybinding | Scope | Output Target |
+| Keybinding | Scope | Action |
 | :--- | :--- | :--- |
-| `Print` | Interactive Area Selection | Saved to `~/Pictures/Screenshots/` and copied to clipboard |
-| `SUPER + Print` | Full Active Monitor | Saved to `~/Pictures/Screenshots/` and copied to clipboard |
-| `SUPER + SHIFT + Print` | Full Screen Save | Saved directly to storage |
-| `SUPER + SHIFT + Sys_Req` | Full Screen Save | Hardware SysRq fallback capture |
+| `Print` | Full Screen | `noctalia msg screenshot-fullscreen` |
+| `SUPER + Print` | Interactive Region | `noctalia msg screenshot-region` |
+| `SUPER + SHIFT + S` | Interactive Region | `noctalia msg screenshot-region` (standard shortcut) |
 
 ---
 
