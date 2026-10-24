@@ -91,13 +91,16 @@ Screenshots are driven natively via Noctalia Desktop Shell v5's built-in screens
 
 ## 7. Media, Audio, and Brightness
 
-Hardware media keys are handled via `wpctl` (PipeWire wireplumber) and `brightnessctl`:
+Hardware media keys are handled via `noctalia msg` IPC, `playerctl`, and `brightnessctl`:
 
 | Keybinding | Function | Action |
 | :--- | :--- | :--- |
 | `XF86AudioRaiseVolume` | Audio Volume | Increase volume by 5% up to 150% maximum limit |
 | `XF86AudioLowerVolume` | Audio Volume | Decrease volume by 5% |
 | `XF86AudioMute` | Audio Mute | Toggle active audio sink mute status |
+| `XF86AudioPlay` / `Pause` | Media Playback | Toggle play/pause via playerctl |
+| `XF86AudioNext` | Track Skip | Skip to next track via playerctl |
+| `XF86AudioPrev` | Track Previous | Skip to previous track via playerctl |
 | `XF86MonBrightnessUp` | Screen Brightness | Increase display backlight by 5% |
 | `XF86MonBrightnessDown` | Screen Brightness | Decrease display backlight by 5% |
 
