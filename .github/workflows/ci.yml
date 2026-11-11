@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: ShellCheck Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        run: shellcheck install.sh dotfiles/noctalia/scripts/on-colors-changed.sh
+
+  validate:
+    name: Configuration & Dry Run Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate TOML Syntax
+        run: |
+          python3 -c "
+          import tomllib, glob
+          for tf in glob.glob('**/*.toml', recursive=True):
+              with open(tf, 'rb') as f:
+                  tomllib.load(f)
+          "
+
+      - name: Test Installer Dry Run
+        run: bash install.sh --dry-run
